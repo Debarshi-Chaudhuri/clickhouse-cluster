@@ -20,7 +20,7 @@ services:
       - ../env/.env.clickhouse1
     entrypoint: ["/entrypoint.sh"]
     networks:
-      - keeper-network
+      - shared-network
     deploy:
       replicas: 1
       placement:
@@ -49,7 +49,7 @@ services:
       - ../env/.env.clickhouse2
     entrypoint: ["/entrypoint.sh"]
     networks:
-      - keeper-network
+      - shared-network
     deploy:
       replicas: 1
       placement:
@@ -78,7 +78,7 @@ services:
       - ../env/.env.clickhouse3
     entrypoint: ["/entrypoint.sh"]
     networks:
-      - keeper-network
+      - shared-network
     deploy:
       replicas: 1
       placement:
@@ -90,9 +90,8 @@ services:
         max_attempts: 3
 
 networks:
-  keeper-network:
-    driver: overlay
-    attachable: true
+  shared-network:
+    external: true
 
 volumes:
   keeper-1-data:

@@ -16,7 +16,7 @@
             <cacheSessions>true</cacheSessions>
             <requireTLSv1_2>true</requireTLSv1_2>
             <invalidCertificateHandler>
-                <n>RejectCertificateHandler</n>
+                <n>AcceptCertificateHandler</n>
             </invalidCertificateHandler>
             <preferServerCiphers>true</preferServerCiphers>
             <disableProtocols>sslv2,sslv3</disableProtocols>

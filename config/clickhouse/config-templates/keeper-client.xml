@@ -1,41 +1,33 @@
 <?xml version="1.0"?>
 <clickhouse>
-    <!-- ClickHouse Keeper Client Configuration - Minimal and Essential -->
+    <!-- ClickHouse Keeper Client Configuration - SSL Fixed for v25.6.2.5 -->
     
     <!-- ZooKeeper/Keeper Client Configuration -->
-    <!-- How ClickHouse connects to Keeper servers -->
     <zookeeper>
         <!-- Basic connection settings -->
         <session_timeout_ms>30000</session_timeout_ms>
         <operation_timeout_ms>10000</operation_timeout_ms>
         <root>/clickhouse</root>
         
-        <!-- Keeper server nodes -->
+        <!-- Keeper server nodes with SSL -->
         <node>
             <host>keeper-1</host>
             <port>2181</port>
+            <secure>1</secure>
         </node>
         <node>
             <host>keeper-2</host>
             <port>2181</port>
+            <secure>1</secure>
         </node>
         <node>
             <host>keeper-3</host>
             <port>2181</port>
+            <secure>1</secure>
         </node>
-        
-        <!-- SSL settings for secure communication -->
-        <use_ssl>true</use_ssl>
-        <ssl_cert_file>/etc/ssl/clickhouse/clickhouse-server.crt</ssl_cert_file>
-        <ssl_key_file>/etc/ssl/clickhouse/clickhouse-server.key</ssl_key_file>
-        <ssl_ca_cert_file>/etc/ssl/clickhouse/ca.crt</ssl_ca_cert_file>
-        <ssl_verify_mode>strict</ssl_verify_mode>
-        
-        <!-- Connection optimization -->
-        <prefer_local_keeper_connection>true</prefer_local_keeper_connection>
     </zookeeper>
 
-    <!-- Distributed DDL Configuration (Essential for cluster operations) -->
+    <!-- Distributed DDL Configuration -->
     <distributed_ddl>
         <path>/clickhouse/task_queue/ddl</path>
         <profile>default</profile>

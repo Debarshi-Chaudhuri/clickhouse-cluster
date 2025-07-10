@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# ClickHouse Cluster Local Deployment Script with Sequential Stack Deployment
+# ClickHouse Cluster Local Deployment Script with Unified Network
 echo "=========================================="
 echo "ClickHouse Cluster Sequential Deployment"
 echo "=========================================="
@@ -44,9 +44,9 @@ fi
 echo ""
 
 # =============================================================================
-# 2. CLEANUP EXISTING STACKS
+# 2. CLEANUP EXISTING STACKS AND NETWORKS
 # =============================================================================
-echo "🧹 Cleaning up existing stacks..."
+echo "🧹 Cleaning up existing stacks and networks..."
 
 # Remove existing stacks if they exist
 if docker stack ls --format "{{.Name}}" | grep -q "^clickhouse-servers$"; then
@@ -69,6 +69,12 @@ if docker stack ls --format "{{.Name}}" | grep -q "clickhouse"; then
     echo "   Waiting for stack cleanup to complete..."
     sleep 30
 fi
+
+# Clean up old networks
+echo "   Cleaning up old networks..."
+docker network rm clickhouse-network 2>/dev/null || echo "   clickhouse-network didn't exist"
+docker network rm keeper-network 2>/dev/null || echo "   keeper-network didn't exist"
+docker network rm shared-network 2>/dev/null || echo "   shared-network didn't exist"
 
 echo "✅ Cleanup completed"
 echo ""
@@ -142,9 +148,9 @@ fi
 echo ""
 
 # =============================================================================
-# 6. SET NODE LABELS AND CREATE NETWORKS
+# 6. SET NODE LABELS AND CREATE UNIFIED NETWORK
 # =============================================================================
-echo "🏷️  Setting up Docker Swarm node labels and networks..."
+echo "🏷️  Setting up Docker Swarm node labels and unified network..."
 
 # Get the current node ID (single node setup)
 NODE_ID=$(docker node ls --format "{{.ID}}" --filter "role=manager")
@@ -157,34 +163,18 @@ docker node update --label-add keeper-node=true $NODE_ID
 
 echo "✅ Node labels configured for single-node deployment"
 
-# Create overlay networks if they don't exist
-echo "🌐 Creating Docker overlay networks..."
+# Create unified overlay network
+echo "🌐 Creating unified Docker overlay network..."
 
-# Check and create clickhouse-network
-if ! docker network ls --format "{{.Name}}" | grep -q "^clickhouse-network$"; then
-    echo "   Creating clickhouse-network..."
-    docker network create \
-        --driver overlay \
-        --attachable \
-        clickhouse-network
-    echo "   ✅ clickhouse-network created"
-else
-    echo "   ✅ clickhouse-network already exists"
-fi
+# Create shared-network for all services
+echo "   Creating shared-network..."
+docker network create \
+    --driver overlay \
+    --attachable \
+    shared-network
+echo "   ✅ shared-network created"
 
-# Check and create keeper-network
-if ! docker network ls --format "{{.Name}}" | grep -q "^keeper-network$"; then
-    echo "   Creating keeper-network..."
-    docker network create \
-        --driver overlay \
-        --attachable \
-        keeper-network
-    echo "   ✅ keeper-network created"
-else
-    echo "   ✅ keeper-network already exists"
-fi
-
-echo "✅ Docker networks configured successfully"
+echo "✅ Docker unified network configured successfully"
 
 echo ""
 
@@ -251,13 +241,6 @@ fi
 
 echo "✅ All Keeper services are ready!"
 
-# Wait for Keeper cluster formation and consensus
-echo "⏳ Waiting for Keeper cluster to form consensus (90 seconds)..."
-sleep 10
-
-# Verify Keeper cluster health
-echo "🏥 Verifying Keeper cluster health..."
-
 # =============================================================================
 # 8. DEPLOY CLICKHOUSE STACK
 # =============================================================================
@@ -299,7 +282,7 @@ echo "✅ All ClickHouse services are ready!"
 echo ""
 
 # =============================================================================
-# 9. COMPREHENSIVE HEALTH CHECK
+# 10. COMPREHENSIVE HEALTH CHECK
 # =============================================================================
 echo "🏥 Running comprehensive health checks..."
 
@@ -348,7 +331,7 @@ fi
 echo ""
 
 # =============================================================================
-# 10. DEPLOYMENT SUMMARY
+# 11. DEPLOYMENT SUMMARY
 # =============================================================================
 echo "🎉 ClickHouse Cluster Sequential Deployment Summary"
 echo "=================================================="
@@ -357,11 +340,13 @@ echo "✅ Docker Swarm initialized"
 echo "✅ SSL certificates generated"
 echo "✅ Environment files configured" 
 echo "✅ Password files created"
+echo "✅ Unified network (shared-network) created"
 echo "✅ Keeper cluster deployed and ready"
 echo "✅ ClickHouse cluster deployed and ready"
 echo ""
 echo "📊 Cluster Information:"
 echo "   Cluster Name: local_cluster"
+echo "   Network: shared-network"
 echo "   Keeper Stack: clickhouse-keepers"
 echo "   ClickHouse Stack: clickhouse-servers"
 echo "   Nodes: 3 ClickHouse + 3 Keeper"

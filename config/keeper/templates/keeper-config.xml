@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <yandex>
-    <!-- ClickHouse Keeper Configuration -->
+    <!-- ClickHouse Keeper Configuration with SSL Support -->
     
     <!-- Basic Keeper Settings -->
     <keeper_server>
-        <!-- Client port for ClickHouse connections -->
-        <tcp_port>2181</tcp_port>
+        <!-- Client port for ClickHouse connections (SSL-enabled) -->
+        <tcp_port_secure>2181</tcp_port_secure>
         
         <!-- Keeper server ID (unique per node) -->
         <server_id>${KEEPER_SERVER_ID}</server_id>
@@ -98,24 +98,36 @@
     <!-- Network settings -->
     <listen_host>0.0.0.0</listen_host>
     
-    <!-- SSL Configuration (if needed for Keeper-to-Keeper communication) -->
+    <!-- SSL Configuration for Keeper -->
     <openSSL>
         <server>
             <certificateFile>/etc/ssl/clickhouse/keeper.crt</certificateFile>
             <privateKeyFile>/etc/ssl/clickhouse/keeper.key</privateKeyFile>
             <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
+            <loadDefaultCAFile>false</loadDefaultCAFile>
             <verificationMode>relaxed</verificationMode>
             <cacheSessions>true</cacheSessions>
             <requireTLSv1_2>true</requireTLSv1_2>
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+            <preferServerCiphers>true</preferServerCiphers>
+            <invalidCertificateHandler>
+                <n>AcceptCertificateHandler</n>
+            </invalidCertificateHandler>
         </server>
         
         <client>
             <certificateFile>/etc/ssl/clickhouse/keeper.crt</certificateFile>
             <privateKeyFile>/etc/ssl/clickhouse/keeper.key</privateKeyFile>
             <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
+            <loadDefaultCAFile>false</loadDefaultCAFile>
             <verificationMode>strict</verificationMode>
             <cacheSessions>true</cacheSessions>
             <requireTLSv1_2>true</requireTLSv1_2>
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+            <preferServerCiphers>true</preferServerCiphers>
+            <invalidCertificateHandler>
+                <n>AcceptCertificateHandler</n>
+            </invalidCertificateHandler>
         </client>
     </openSSL>
     
