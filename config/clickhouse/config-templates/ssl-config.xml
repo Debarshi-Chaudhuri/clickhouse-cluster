@@ -16,7 +16,7 @@
             <!-- Server private key for this ClickHouse instance -->
             <privateKeyFile>/etc/ssl/clickhouse/clickhouse-server.key</privateKeyFile>
             
-            <!-- Verification mode: relaxed for server (allow connections from various clients) -->
+            <!-- Verification mode: relaxed for TLS-only (no client certificates required) -->
             <verificationMode>relaxed</verificationMode>
             
             <!-- Cache SSL sessions for performance -->
@@ -79,10 +79,12 @@
         </client>
     </openSSL>
 
-    <!-- Interserver SSL Credentials (for secure replication) -->
+    <!-- Interserver TLS Credentials (password-based authentication) -->
     <interserver_http_credentials>
-        <user>${INTERSERVER_USER}</user>
+        <user>interserver</user>
         <password_file>/etc/secrets/clickhouse-password.txt</password_file>
+        <!-- Use TLS encryption -->
+        <secure>1</secure>
     </interserver_http_credentials>
 
     <!-- Additional SSL Security Settings -->

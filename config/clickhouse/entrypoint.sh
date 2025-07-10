@@ -3,12 +3,17 @@ set -e
 
 echo "Starting ClickHouse configuration processing..."
 
-# Create config.d directory if it doesn't exist
+# Create necessary directories
 mkdir -p /etc/clickhouse-server/config.d
+mkdir -p /etc/clickhouse-server/users.d
+mkdir -p /var/lib/clickhouse
+mkdir -p /var/log/clickhouse-server
 
-# ClickHouse-specific template directory
-TEMPLATE_DIR="/etc/clickhouse-server/templates"
+# Template directories
+CONFIG_TEMPLATE_DIR="/etc/clickhouse-server/config-templates"
+USER_TEMPLATE_DIR="/etc/clickhouse-server/user-templates"
 CONFIG_DIR="/etc/clickhouse-server/config.d"
+USERS_DIR="/etc/clickhouse-server/users.d"
 
 # Function to substitute environment variables in template files
 substitute_template() {
@@ -17,7 +22,7 @@ substitute_template() {
     
     echo "Processing template: $template_file -> $output_file"
     
-    # Use sed to substitute environment variables (works without envsubst)
+    # Use sed to substitute environment variables
     sed 's/\${CLICKHOUSE_SERVER_ID}/'"$CLICKHOUSE_SERVER_ID"'/g; 
          s/\${INSTANCE_NAME}/'"$INSTANCE_NAME"'/g;
          s/\${INTERSERVER_HOST}/'"$INTERSERVER_HOST"'/g;
@@ -79,53 +84,49 @@ substitute_template() {
          s/\${S3_REGION}/'"${S3_REGION:-}"'/g' \
     "$template_file" > "$output_file"
     
-    # Set proper permissions
     chmod 644 "$output_file"
 }
 
-# Process all ClickHouse template files dynamically
-if [ -d "$TEMPLATE_DIR" ]; then
+echo "=== All environment variables (sorted) ==="
+env | sort
+echo "=========================================="
+
+# Process ClickHouse configuration templates
+if [ -d "$CONFIG_TEMPLATE_DIR" ]; then
     echo "Processing ClickHouse configuration templates..."
     
-    # Find all .xml files and process them as templates
     template_count=0
-    for template_file in "$TEMPLATE_DIR"/*.xml; do
-        # Check if file exists (handles case where no .xml files exist)
+    for template_file in "$CONFIG_TEMPLATE_DIR"/*.xml; do
         if [ -f "$template_file" ]; then
-            # Get the base filename 
             base_name=$(basename "$template_file")
             output_file="$CONFIG_DIR/$base_name"
-            
             substitute_template "$template_file" "$output_file"
             template_count=$((template_count + 1))
         fi
     done
     
-    # Also process any subdirectories with templates
-    for subdir in "$TEMPLATE_DIR"/*/; do
-        if [ -d "$subdir" ]; then
-            subdir_name=$(basename "$subdir")
-            mkdir -p "$CONFIG_DIR/$subdir_name"
-            
-            for template_file in "$subdir"*.xml; do
-                if [ -f "$template_file" ]; then
-                    base_name=$(basename "$template_file")
-                    output_file="$CONFIG_DIR/$subdir_name/$base_name"
-                    
-                    substitute_template "$template_file" "$output_file"
-                    template_count=$((template_count + 1))
-                fi
-            done
+    echo "Successfully processed $template_count configuration template(s)!"
+else
+    echo "Warning: Config template directory $CONFIG_TEMPLATE_DIR not found"
+fi
+
+# Process ClickHouse user templates
+if [ -d "$USER_TEMPLATE_DIR" ]; then
+    echo "Processing ClickHouse user templates..."
+    
+    user_template_count=0
+    for template_file in "$USER_TEMPLATE_DIR"/*.xml; do
+        if [ -f "$template_file" ]; then
+            base_name=$(basename "$template_file")
+            output_file="$USERS_DIR/$base_name"
+            substitute_template "$template_file" "$output_file"
+            user_template_count=$((user_template_count + 1))
         fi
     done
     
-    if [ $template_count -eq 0 ]; then
-        echo "Warning: No .xml files found in $TEMPLATE_DIR"
-    else
-        echo "Successfully processed $template_count configuration template(s)!"
-    fi
+    echo "Successfully processed $user_template_count user template(s)!"
 else
-    echo "Warning: Template directory $TEMPLATE_DIR not found"
+    echo "Warning: User template directory $USER_TEMPLATE_DIR not found"
 fi
 
 # Validate required environment variables
@@ -153,43 +154,9 @@ echo "=== ClickHouse Configuration Summary ==="
 echo "Server ID: $CLICKHOUSE_SERVER_ID"
 echo "Instance Name: $INSTANCE_NAME"
 echo "Interserver Host: $INTERSERVER_HOST"
+echo "Cluster Name: $CLUSTER_NAME"
 echo "========================================"
 
-# Wait for Keeper services to be ready (hardcoded keeper nodes)
-echo "Waiting for ClickHouse Keeper services to be ready..."
-
-# Hardcoded keeper nodes (matching our templates)
-keeper_nodes=("keeper-1:2181" "keeper-2:2181" "keeper-3:2181")
-
-for keeper in "${keeper_nodes[@]}"; do
-    keeper_host=$(echo "$keeper" | cut -d':' -f1)
-    keeper_port=$(echo "$keeper" | cut -d':' -f2)
-    
-    echo "Checking connectivity to $keeper_host:$keeper_port..."
-    
-    # Wait up to 60 seconds for each keeper
-    timeout=60
-    while ! nc -z "$keeper_host" "$keeper_port" 2>/dev/null; do
-        if [ $timeout -le 0 ]; then
-            echo "Warning: Could not connect to $keeper_host:$keeper_port after 60 seconds"
-            break
-        fi
-        echo "Waiting for $keeper_host:$keeper_port... ($timeout seconds remaining)"
-        sleep 2
-        timeout=$((timeout - 2))
-    done
-    
-    if nc -z "$keeper_host" "$keeper_port" 2>/dev/null; then
-        echo "Successfully connected to $keeper_host:$keeper_port"
-    fi
-done
-
-echo "Keeper connectivity check completed."
-
-# Display generated configuration files (for debugging)
-echo "Generated configuration files:"
-ls -la $CONFIG_DIR/
-
-# Start ClickHouse server
+# Start ClickHouse server (running as clickhouse user via Docker)
 echo "Starting ClickHouse server..."
-exec /entrypoint.sh "$@"
+exec /usr/bin/clickhouse-server --config-file=/etc/clickhouse-server/config.xml

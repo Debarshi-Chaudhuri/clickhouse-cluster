@@ -18,29 +18,29 @@
             <!-- Default disk (local EBS volume) -->
             <default>
                 <type>local</type>
-                <path>/var/lib/clickhouse/</path>
             </default>
             
             <!-- Optional: S3 disk for backups/archival -->
-            <s3_disk>
-                <type>s3</type>
-                <endpoint>${S3_ENDPOINT}</endpoint>
-                <access_key_id>${S3_ACCESS_KEY}</access_key_id>
-                <secret_access_key>${S3_SECRET_KEY}</secret_access_key>
-                <bucket>${S3_BUCKET_NAME}</bucket>
-                <root_path>/clickhouse/${INSTANCE_NAME}/</root_path>
-                <region>${S3_REGION}</region>
+            
+            <!-- <s3_disk> -->
+                <!-- <type>s3</type> -->
+                <!-- <endpoint>${S3_ENDPOINT}</endpoint> -->
+                <!-- <access_key_id>${S3_ACCESS_KEY}</access_key_id> -->
+                <!-- <secret_access_key>${S3_SECRET_KEY}</secret_access_key> -->
+                <!-- <bucket>${S3_BUCKET_NAME}</bucket> -->
+                <!-- <root_path>/clickhouse/${INSTANCE_NAME}/</root_path> -->
+                <!-- <region>${S3_REGION}</region> -->
                 
                 <!-- Basic S3 settings -->
-                <use_environment_credentials>false</use_environment_credentials>
-                <connect_timeout_ms>10000</connect_timeout_ms>
-                <request_timeout_ms>30000</request_timeout_ms>
-                <retry_attempts>3</retry_attempts>
+                <!-- <use_environment_credentials>false</use_environment_credentials> -->
+                <!-- <connect_timeout_ms>10000</connect_timeout_ms> -->
+                <!-- <request_timeout_ms>30000</request_timeout_ms> -->
+                <!-- <retry_attempts>3</retry_attempts> -->
                 
                 <!-- S3 metadata cache -->
-                <metadata_path>/var/lib/clickhouse/disks/s3/</metadata_path>
-                <support_batch_delete>true</support_batch_delete>
-            </s3_disk>
+                <!-- <metadata_path>/var/lib/clickhouse/disks/s3/</metadata_path> -->
+                <!-- <support_batch_delete>true</support_batch_delete> -->
+            <!-- </s3_disk> -->
         </disks>
         
         <!-- Storage Policies - Keep it simple -->

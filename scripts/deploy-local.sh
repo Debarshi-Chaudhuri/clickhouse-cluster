@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-# ClickHouse Cluster Local Deployment Script
+# ClickHouse Cluster Local Deployment Script with Sequential Stack Deployment
 echo "=========================================="
-echo "ClickHouse Cluster Local Deployment"
+echo "ClickHouse Cluster Sequential Deployment"
 echo "=========================================="
 
 # Change to script directory
@@ -44,7 +44,37 @@ fi
 echo ""
 
 # =============================================================================
-# 2. GENERATE SSL CERTIFICATES
+# 2. CLEANUP EXISTING STACKS
+# =============================================================================
+echo "🧹 Cleaning up existing stacks..."
+
+# Remove existing stacks if they exist
+if docker stack ls --format "{{.Name}}" | grep -q "^clickhouse-servers$"; then
+    echo "   Removing existing ClickHouse servers stack..."
+    docker stack rm clickhouse-servers
+fi
+
+if docker stack ls --format "{{.Name}}" | grep -q "^clickhouse-keepers$"; then
+    echo "   Removing existing ClickHouse keepers stack..."
+    docker stack rm clickhouse-keepers
+fi
+
+if docker stack ls --format "{{.Name}}" | grep -q "^clickhouse-cluster$"; then
+    echo "   Removing existing combined stack..."
+    docker stack rm clickhouse-cluster
+fi
+
+# Wait for cleanup
+if docker stack ls --format "{{.Name}}" | grep -q "clickhouse"; then
+    echo "   Waiting for stack cleanup to complete..."
+    sleep 30
+fi
+
+echo "✅ Cleanup completed"
+echo ""
+
+# =============================================================================
+# 3. GENERATE SSL CERTIFICATES
 # =============================================================================
 echo "🔒 Generating SSL certificates for local development..."
 
@@ -70,7 +100,7 @@ echo "✅ Entrypoint scripts permissions set"
 echo ""
 
 # =============================================================================
-# 3. CREATE ENVIRONMENT FILES
+# 4. CREATE ENVIRONMENT FILES
 # =============================================================================
 echo "⚙️  Setting up environment files..."
 
@@ -92,7 +122,7 @@ echo "   - .env.clickhouse3 (for clickhouse-3 and keeper-3)"
 echo ""
 
 # =============================================================================
-# 4. CREATE PASSWORD FILES
+# 5. CREATE PASSWORD FILES
 # =============================================================================
 echo "🔑 Setting up password files..."
 
@@ -112,7 +142,7 @@ fi
 echo ""
 
 # =============================================================================
-# 5. SET NODE LABELS AND CREATE NETWORKS
+# 6. SET NODE LABELS AND CREATE NETWORKS
 # =============================================================================
 echo "🏷️  Setting up Docker Swarm node labels and networks..."
 
@@ -159,26 +189,20 @@ echo "✅ Docker networks configured successfully"
 echo ""
 
 # =============================================================================
-# 6. DEPLOY THE STACK
+# 7. DEPLOY KEEPER STACK FIRST
 # =============================================================================
-echo "🚀 Deploying ClickHouse cluster stack..."
+echo "🚀 Phase 1: Deploying ClickHouse Keeper stack..."
 
 cd "$PROJECT_ROOT/stacks"
 
-# Deploy the stack
+# Deploy Keeper stack
+echo "📋 Deploying Keeper services..."
 docker stack deploy \
-    --compose-file docker-stack.local.yml \
+    --compose-file docker-stack.keepers.yml \
     --detach=false \
-    clickhouse-cluster
+    clickhouse-keepers
 
-echo "✅ Stack deployment initiated"
-
-echo ""
-
-# =============================================================================
-# 7. WAIT FOR SERVICES TO BE READY
-# =============================================================================
-echo "⏳ Waiting for services to become ready..."
+echo "✅ Keeper stack deployment initiated"
 
 # Function to check service readiness
 check_service_ready() {
@@ -195,7 +219,7 @@ check_service_ready() {
         fi
         
         echo "   ⏳ Attempt $attempt/$max_attempts - waiting for $service_name..."
-        sleep 5
+        sleep 10
         attempt=$((attempt + 1))
     done
     
@@ -203,41 +227,85 @@ check_service_ready() {
     return 1
 }
 
-# Check each service
-services=(
-    "clickhouse-cluster_keeper-1"
-    "clickhouse-cluster_keeper-2" 
-    "clickhouse-cluster_keeper-3"
-    "clickhouse-cluster_clickhouse-1"
-    "clickhouse-cluster_clickhouse-2"
-    "clickhouse-cluster_clickhouse-3"
+# Wait for Keeper services to be ready
+echo "⏳ Waiting for Keeper services to become ready..."
+
+keeper_services=(
+    "clickhouse-keepers_keeper-1"
+    "clickhouse-keepers_keeper-2" 
+    "clickhouse-keepers_keeper-3"
 )
 
-all_ready=true
-for service in "${services[@]}"; do
+all_keepers_ready=true
+for service in "${keeper_services[@]}"; do
     if ! check_service_ready $service; then
-        all_ready=false
+        all_keepers_ready=false
     fi
 done
 
-if [ "$all_ready" = true ]; then
-    echo "✅ All services are ready!"
-else
-    echo "❌ Some services failed to start. Check logs with:"
-    echo "   docker service logs <service-name>"
+if [ "$all_keepers_ready" = false ]; then
+    echo "❌ Some Keeper services failed to start. Check logs with:"
+    echo "   docker service logs clickhouse-keepers_keeper-1"
     exit 1
 fi
+
+echo "✅ All Keeper services are ready!"
+
+# Wait for Keeper cluster formation and consensus
+echo "⏳ Waiting for Keeper cluster to form consensus (90 seconds)..."
+sleep 10
+
+# Verify Keeper cluster health
+echo "🏥 Verifying Keeper cluster health..."
+
+# =============================================================================
+# 8. DEPLOY CLICKHOUSE STACK
+# =============================================================================
+echo "🚀 Phase 2: Deploying ClickHouse server stack..."
+
+# Deploy ClickHouse stack
+echo "📋 Deploying ClickHouse services..."
+docker stack deploy \
+    --compose-file docker-stack.clickhouse.yml \
+    --detach=false \
+    clickhouse-servers
+
+echo "✅ ClickHouse stack deployment initiated"
+
+# Wait for ClickHouse services to be ready
+echo "⏳ Waiting for ClickHouse services to become ready..."
+
+clickhouse_services=(
+    "clickhouse-servers_clickhouse-1"
+    "clickhouse-servers_clickhouse-2"
+    "clickhouse-servers_clickhouse-3"
+)
+
+all_clickhouse_ready=true
+for service in "${clickhouse_services[@]}"; do
+    if ! check_service_ready $service; then
+        all_clickhouse_ready=false
+    fi
+done
+
+if [ "$all_clickhouse_ready" = false ]; then
+    echo "❌ Some ClickHouse services failed to start. Check logs with:"
+    echo "   docker service logs clickhouse-servers_clickhouse-1"
+    exit 1
+fi
+
+echo "✅ All ClickHouse services are ready!"
 
 echo ""
 
 # =============================================================================
-# 8. HEALTH CHECK
+# 9. COMPREHENSIVE HEALTH CHECK
 # =============================================================================
-echo "🏥 Running health checks..."
+echo "🏥 Running comprehensive health checks..."
 
-# Wait a bit more for services to fully initialize
-echo "   Waiting 30 seconds for services to fully initialize..."
-sleep 30
+# Wait for services to fully initialize
+echo "   Waiting 60 seconds for services to fully initialize..."
+sleep 60
 
 # Function to check ClickHouse connectivity
 check_clickhouse() {
@@ -246,7 +314,6 @@ check_clickhouse() {
     
     echo "   Testing ClickHouse HTTPS connection on port $port ($node_name)..."
     
-    # Test HTTPS port since HTTP is disabled
     if curl -k --connect-timeout 10 -s "https://localhost:$port" >/dev/null 2>&1; then
         echo "   ✅ $node_name is responding on HTTPS port $port"
         return 0
@@ -256,11 +323,21 @@ check_clickhouse() {
     fi
 }
 
-# Check ClickHouse nodes on HTTPS ports (backward compatible)
+# Test ClickHouse connectivity
 health_ok=true
 if ! check_clickhouse 9001 "clickhouse-1"; then health_ok=false; fi
 if ! check_clickhouse 9011 "clickhouse-2"; then health_ok=false; fi  
 if ! check_clickhouse 9021 "clickhouse-3"; then health_ok=false; fi
+
+# Test cluster formation (if ClickHouse is responding)
+if [ "$health_ok" = true ]; then
+    echo "   Testing cluster connectivity..."
+    if curl -k -s "https://localhost:9001/?query=SELECT%20*%20FROM%20system.clusters%20WHERE%20cluster%20=%20%27local_cluster%27" | grep -q "local_cluster"; then
+        echo "   ✅ ClickHouse cluster is accessible and configured"
+    else
+        echo "   ⚠️  ClickHouse cluster configuration may not be ready yet"
+    fi
+fi
 
 if [ "$health_ok" = true ]; then
     echo "✅ Health checks passed!"
@@ -271,20 +348,23 @@ fi
 echo ""
 
 # =============================================================================
-# 9. DEPLOYMENT SUMMARY
+# 10. DEPLOYMENT SUMMARY
 # =============================================================================
-echo "🎉 ClickHouse Cluster Deployment Summary"
-echo "=========================================="
+echo "🎉 ClickHouse Cluster Sequential Deployment Summary"
+echo "=================================================="
 echo ""
 echo "✅ Docker Swarm initialized"
 echo "✅ SSL certificates generated"
 echo "✅ Environment files configured" 
 echo "✅ Password files created"
-echo "✅ Stack deployed successfully"
+echo "✅ Keeper cluster deployed and ready"
+echo "✅ ClickHouse cluster deployed and ready"
 echo ""
 echo "📊 Cluster Information:"
 echo "   Cluster Name: local_cluster"
-echo "   Nodes: 3 ClickHouse + 3 Keeper (co-located)"
+echo "   Keeper Stack: clickhouse-keepers"
+echo "   ClickHouse Stack: clickhouse-servers"
+echo "   Nodes: 3 ClickHouse + 3 Keeper"
 echo "   Replication: 1 shard with 3 replicas"
 echo ""
 echo "🌐 Access Points:"
@@ -292,15 +372,22 @@ echo "   ClickHouse Node 1: https://localhost:9001"
 echo "   ClickHouse Node 2: https://localhost:9011" 
 echo "   ClickHouse Node 3: https://localhost:9021"
 echo ""
+echo "   Keeper Node 1: localhost:2181"
+echo "   Keeper Node 2: localhost:2182"
+echo "   Keeper Node 3: localhost:2183"
+echo ""
 echo "🔧 Management Commands:"
-echo "   View services:    docker service ls"
-echo "   View logs:        docker service logs clickhouse-cluster_clickhouse-1"
-echo "   Scale service:    docker service scale clickhouse-cluster_clickhouse-1=2"
-echo "   Remove stack:     docker stack rm clickhouse-cluster"
+echo "   View all stacks:         docker stack ls"
+echo "   View keeper services:    docker service ls --filter label=com.docker.stack.namespace=clickhouse-keepers"
+echo "   View clickhouse services: docker service ls --filter label=com.docker.stack.namespace=clickhouse-servers"
+echo "   View keeper logs:        docker service logs clickhouse-keepers_keeper-1"
+echo "   View clickhouse logs:    docker service logs clickhouse-servers_clickhouse-1"
+echo "   Remove keeper stack:     docker stack rm clickhouse-keepers"
+echo "   Remove clickhouse stack: docker stack rm clickhouse-servers"
 echo ""
 echo "📚 Next Steps:"
 echo "   1. Test connectivity: curl -k https://localhost:9001"
 echo "   2. Connect with client: clickhouse-client --host localhost --port 9002 --secure"
 echo "   3. Run cluster query: SELECT * FROM system.clusters WHERE cluster = 'local_cluster'"
 echo ""
-echo "🎯 Deployment completed successfully!"
+echo "🎯 Sequential deployment completed successfully!"

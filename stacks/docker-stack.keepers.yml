@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # ClickHouse Keeper Services
+  keeper-1:
+    image: clickhouse/clickhouse-keeper:latest
+    hostname: keeper-1
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+    volumes:
+      - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - keeper-1-data:/var/lib/clickhouse-keeper
+      - keeper-1-logs:/var/log/clickhouse-keeper
+    env_file:
+      - ../env/.env.clickhouse1
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - keeper-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.keeper-node == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+
+  keeper-2:
+    image: clickhouse/clickhouse-keeper:latest
+    hostname: keeper-2
+    ports:
+      - "2182:2181"
+      - "2889:2888"
+      - "3889:3888"
+    volumes:
+      - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - keeper-2-data:/var/lib/clickhouse-keeper
+      - keeper-2-logs:/var/log/clickhouse-keeper
+    env_file:
+      - ../env/.env.clickhouse2
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - keeper-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.keeper-node == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+
+  keeper-3:
+    image: clickhouse/clickhouse-keeper:latest
+    hostname: keeper-3
+    ports:
+      - "2183:2181"
+      - "2890:2888"
+      - "3890:3888"
+    volumes:
+      - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - keeper-3-data:/var/lib/clickhouse-keeper
+      - keeper-3-logs:/var/log/clickhouse-keeper
+    env_file:
+      - ../env/.env.clickhouse3
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - keeper-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.keeper-node == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
+
+networks:
+  keeper-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  keeper-1-data:
+  keeper-2-data:
+  keeper-3-data:
+  keeper-1-logs:
+  keeper-2-logs:
+  keeper-3-logs:

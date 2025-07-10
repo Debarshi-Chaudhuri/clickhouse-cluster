@@ -3,7 +3,4 @@
     <!-- Server Identity -->
     <display_name>${INSTANCE_NAME}</display_name>
     <server_id>${CLICKHOUSE_SERVER_ID}</server_id>
-
-    <!-- Include additional configuration files from config.d -->
-    <include_from>/etc/clickhouse-server/config.d/*.xml</include_from>
 </clickhouse>

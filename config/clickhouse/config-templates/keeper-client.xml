@@ -46,24 +46,21 @@
         <${CLUSTER_NAME}>
             <shard>
                 <replica>
-                    <host>clickhouse-1</host>
-                    <port>9000</port>
+                    <host>${INTERSERVER_HOST}</host>
+                    <port>9002</port>
                     <user>interserver</user>
-                    <password_file>/etc/secrets/clickhouse-password.txt</password_file>
                     <secure>1</secure>
                 </replica>
                 <replica>
-                    <host>clickhouse-2</host>
-                    <port>9000</port>
+                    <host>${INTERSERVER_HOST}</host>
+                    <port>9002</port>
                     <user>interserver</user>
-                    <password_file>/etc/secrets/clickhouse-password.txt</password_file>
                     <secure>1</secure>
                 </replica>
                 <replica>
-                    <host>clickhouse-3</host>
-                    <port>9000</port>
+                    <host>${INTERSERVER_HOST}</host>
+                    <port>9002</port>
                     <user>interserver</user>
-                    <password_file>/etc/secrets/clickhouse-password.txt</password_file>
                     <secure>1</secure>
                 </replica>
             </shard>
