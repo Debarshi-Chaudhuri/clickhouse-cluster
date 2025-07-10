@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <clickhouse>
-    <!-- ClickHouse Keeper Client Configuration - SSL Fixed for v25.6.2.5 -->
+    <!-- ClickHouse Keeper Client Configuration with Proper SSL -->
     
     <!-- ZooKeeper/Keeper Client Configuration -->
     <zookeeper>
@@ -11,18 +11,18 @@
         
         <!-- Keeper server nodes with SSL -->
         <node>
-            <host>keeper-1</host>
+            <host>clickhouse-keepers_keeper-1</host>
             <port>2181</port>
             <secure>1</secure>
         </node>
         <node>
-            <host>keeper-2</host>
-            <port>2181</port>
+            <host>clickhouse-keepers_keeper-2</host>
+            <port>2182</port>
             <secure>1</secure>
         </node>
         <node>
-            <host>keeper-3</host>
-            <port>2181</port>
+            <host>clickhouse-keepers_keeper-3</host>
+            <port>2183</port>
             <secure>1</secure>
         </node>
     </zookeeper>
@@ -33,24 +33,24 @@
         <profile>default</profile>
     </distributed_ddl>
 
-    <!-- Remote Servers Configuration (1 shard, 3 replicas) -->
+    <!-- Remote Servers Configuration (1 shard, 3 replicas) - FIXED -->
     <remote_servers>
         <${CLUSTER_NAME}>
             <shard>
                 <replica>
-                    <host>${INTERSERVER_HOST}</host>
+                    <host>clickhouse-servers_clickhouse-1</host>
                     <port>9002</port>
                     <user>interserver</user>
                     <secure>1</secure>
                 </replica>
                 <replica>
-                    <host>${INTERSERVER_HOST}</host>
+                    <host>clickhouse-servers_clickhouse-2</host>
                     <port>9002</port>
                     <user>interserver</user>
                     <secure>1</secure>
                 </replica>
                 <replica>
-                    <host>${INTERSERVER_HOST}</host>
+                    <host>clickhouse-servers_clickhouse-3</host>
                     <port>9002</port>
                     <user>interserver</user>
                     <secure>1</secure>

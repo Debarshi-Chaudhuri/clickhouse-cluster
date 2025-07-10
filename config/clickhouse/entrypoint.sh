@@ -77,6 +77,7 @@ substitute_template() {
          s/\${COMPRESSION_METHOD}/'"${COMPRESSION_METHOD:-lz4}"'/g;
          s/\${COMPRESSION_LEVEL}/'"${COMPRESSION_LEVEL:-1}"'/g;
          s/\${NETWORK_COMPRESSION}/'"${NETWORK_COMPRESSION:-lz4}"'/g;
+         s/\${KEEPER_HOST}/'"${KEEPER_HOST:-}"'/g;
          s/\${S3_ENDPOINT}/'"${S3_ENDPOINT:-}"'/g;
          s/\${S3_ACCESS_KEY}/'"${S3_ACCESS_KEY:-}"'/g;
          s/\${S3_SECRET_KEY}/'"${S3_SECRET_KEY:-}"'/g;

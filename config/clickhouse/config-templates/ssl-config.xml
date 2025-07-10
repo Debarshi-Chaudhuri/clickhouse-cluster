@@ -55,7 +55,7 @@
             <privateKeyFile>/etc/ssl/clickhouse/clickhouse-server.key</privateKeyFile>
             
             <!-- Verification mode: strict for outgoing connections -->
-            <verificationMode>strict</verificationMode>
+            <verificationMode>relaxed</verificationMode>
             
             <!-- Cache SSL sessions for performance -->
             <cacheSessions>true</cacheSessions>
@@ -83,7 +83,6 @@
     <interserver_http_credentials>
         <user>interserver</user>
         <password_file>/etc/secrets/clickhouse-password.txt</password_file>
-        <!-- Use TLS encryption -->
         <secure>1</secure>
     </interserver_http_credentials>
 

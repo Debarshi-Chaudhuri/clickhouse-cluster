@@ -194,29 +194,29 @@ echo "✅ PID directory write access confirmed"
 # Wait for other Keeper nodes to be reachable (for cluster formation)
 echo "Checking connectivity to other Keeper nodes..."
 
-# Hardcoded keeper nodes (matching our templates)
-keeper_nodes=("keeper-1:2181" "keeper-2:2181" "keeper-3:2181")
+# # Hardcoded keeper nodes (matching our templates)
+# keeper_nodes=("clickhouse-keepers_keeper-1:2181" "clickhouse-keepers_keeper-2:2181" "clickhouse-keepers_keeper-3:2181")
 
-for keeper_entry in "${keeper_nodes[@]}"; do
-    # Parse keeper entry format: hostname:port
-    keeper_host=$(echo "$keeper_entry" | cut -d':' -f1)
-    keeper_port=$(echo "$keeper_entry" | cut -d':' -f2)
+# for keeper_entry in "${keeper_nodes[@]}"; do
+#     # Parse keeper entry format: hostname:port
+#     keeper_host=$(echo "$keeper_entry" | cut -d':' -f1)
+#     keeper_port=$(echo "$keeper_entry" | cut -d':' -f2)
     
-    # Skip checking connectivity to self
-    if [ "$keeper_host" = "$INSTANCE_NAME" ]; then
-        echo "Skipping self connectivity check for $keeper_host"
-        continue
-    fi
+#     # Skip checking connectivity to self
+#     if [ "$keeper_host" = "$INSTANCE_NAME" ]; then
+#         echo "Skipping self connectivity check for $keeper_host"
+#         continue
+#     fi
     
-    echo "Checking network connectivity to Keeper node: $keeper_host:$keeper_port"
+#     echo "Checking network connectivity to Keeper node: $keeper_host:$keeper_port"
     
-    # Test TCP connectivity without ping (more reliable in containers)
-    if timeout 3 bash -c "echo > /dev/tcp/$keeper_host/$keeper_port" 2>/dev/null; then
-        echo "Successfully reached Keeper node: $keeper_host:$keeper_port"
-    else
-        echo "Warning: Could not connect to Keeper node: $keeper_host:$keeper_port (this may be normal during initial startup)"
-    fi
-done
+#     # Test TCP connectivity without ping (more reliable in containers)
+#     if timeout 3 bash -c "echo > /dev/tcp/$keeper_host/$keeper_port" 2>/dev/null; then
+#         echo "Successfully reached Keeper node: $keeper_host:$keeper_port"
+#     else
+#         echo "Warning: Could not connect to Keeper node: $keeper_host:$keeper_port (this may be normal during initial startup)"
+#     fi
+# done
 
 # Display generated configuration files (for debugging)
 echo "Generated Keeper configuration files:"

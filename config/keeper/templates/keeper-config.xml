@@ -5,6 +5,7 @@
     <!-- Basic Keeper Settings -->
     <keeper_server>
         <!-- Client port for ClickHouse connections (SSL-enabled) -->
+        <tcp_port remove="true"/>
         <tcp_port_secure>2181</tcp_port_secure>
         
         <!-- Keeper server ID (unique per node) -->
@@ -20,11 +21,11 @@
             <operation_timeout_ms>10000</operation_timeout_ms>
             <session_timeout_ms>30000</session_timeout_ms>
             <dead_session_check_period_ms>500</dead_session_check_period_ms>
-            <heart_beat_interval_ms>500</heart_beat_interval_ms>
+            <heart_beat_interval_ms>5000</heart_beat_interval_ms>
             
             <!-- Leader election -->
-            <election_timeout_lower_bound_ms>1000</election_timeout_lower_bound_ms>
-            <election_timeout_upper_bound_ms>2000</election_timeout_upper_bound_ms>
+            <election_timeout_lower_bound_ms>5000</election_timeout_lower_bound_ms>
+            <election_timeout_upper_bound_ms>10000</election_timeout_upper_bound_ms>
             
             <!-- Log and snapshot management -->
             <reserved_log_items>100000</reserved_log_items>
@@ -48,33 +49,35 @@
         
         <!-- Raft cluster configuration (3-node cluster) -->
         <raft_configuration>
-            <!-- Keeper node 1 -->
+            <secure>1</secure>
+            <!-- keeper-1 service in the "keepers" stack -->
             <server>
                 <id>1</id>
-                <hostname>keeper-1</hostname>
+                <hostname>clickhouse-keepers_keeper-1</hostname>
                 <port>2888</port>
                 <can_become_leader>true</can_become_leader>
                 <priority>2</priority>
             </server>
-            
-            <!-- Keeper node 2 -->
+
+            <!-- keeper-2 -->
             <server>
                 <id>2</id>
-                <hostname>keeper-2</hostname>
+                <hostname>clickhouse-keepers_keeper-2</hostname>
                 <port>2888</port>
                 <can_become_leader>true</can_become_leader>
                 <priority>1</priority>
             </server>
-            
-            <!-- Keeper node 3 -->
+
+            <!-- keeper-3 -->
             <server>
                 <id>3</id>
-                <hostname>keeper-3</hostname>
+                <hostname>clickhouse-keepers_keeper-3</hostname>
                 <port>2888</port>
                 <can_become_leader>true</can_become_leader>
                 <priority>1</priority>
             </server>
         </raft_configuration>
+
     </keeper_server>
     
     <!-- Logging Configuration -->
@@ -120,7 +123,7 @@
             <privateKeyFile>/etc/ssl/clickhouse/keeper.key</privateKeyFile>
             <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
             <loadDefaultCAFile>false</loadDefaultCAFile>
-            <verificationMode>strict</verificationMode>
+            <verificationMode>relaxed</verificationMode>
             <cacheSessions>true</cacheSessions>
             <requireTLSv1_2>true</requireTLSv1_2>
             <disableProtocols>sslv2,sslv3</disableProtocols>

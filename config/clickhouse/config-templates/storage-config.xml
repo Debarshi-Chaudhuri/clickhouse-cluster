@@ -55,13 +55,13 @@
             </default>
             
             <!-- S3 policy for tables that need cloud storage -->
-            <s3_storage>
-                <volumes>
-                    <main>
-                        <disk>s3_disk</disk>
-                    </main>
-                </volumes>
-            </s3_storage>
+            <!-- <s3_storage> -->
+                <!-- <volumes> -->
+                    <!-- <main> -->
+                        <!-- <disk>s3_disk</disk> -->
+                    <!-- </main> -->
+                <!-- </volumes> -->
+            <!-- </s3_storage> -->
         </policies>
     </storage_configuration>
 

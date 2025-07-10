@@ -3,8 +3,7 @@ version: '3.8'
 services:
   # ClickHouse Keeper Services
   keeper-1:
-    image: clickhouse/clickhouse-keeper:latest
-    hostname: keeper-1
+    image: clickhouse/clickhouse-keeper:latest-alpine
     ports:
       - "2181:2181"
       - "2888:2888"
@@ -32,8 +31,7 @@ services:
         max_attempts: 3
 
   keeper-2:
-    image: clickhouse/clickhouse-keeper:latest
-    hostname: keeper-2
+    image: clickhouse/clickhouse-keeper:latest-alpine
     ports:
       - "2182:2181"
       - "2889:2888"
@@ -61,8 +59,7 @@ services:
         max_attempts: 3
 
   keeper-3:
-    image: clickhouse/clickhouse-keeper:latest
-    hostname: keeper-3
+    image: clickhouse/clickhouse-keeper:latest-alpine
     ports:
       - "2183:2181"
       - "2890:2888"

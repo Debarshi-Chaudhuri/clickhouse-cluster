@@ -21,7 +21,7 @@
             <preferServerCiphers>true</preferServerCiphers>
             <disableProtocols>sslv2,sslv3</disableProtocols>
             <extendedVerification>true</extendedVerification>
-            <verificationMode>strict</verificationMode>
+            <verificationMode>relaxed</verificationMode>
         </client>
     </openSSL>
 </config>

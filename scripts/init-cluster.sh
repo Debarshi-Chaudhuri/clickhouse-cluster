@@ -14,11 +14,7 @@ echo "⏳ Waiting for cluster to be fully ready..."
 # Function to execute ClickHouse query
 execute_query() {
     local query="$1"
-    local node_port="${2:-8123}"
-    
-    timeout 30 curl -k -s "https://localhost:$node_port" \
-        --data-urlencode "query=$query" \
-        2>/dev/null
+    curl -k -s "https://localhost:9001/?query=$query"
 }
 
 # Wait for ClickHouse to respond
@@ -26,7 +22,7 @@ max_attempts=30
 attempt=1
 
 while [ $attempt -le $max_attempts ]; do
-    if execute_query "SELECT 1" >/dev/null 2>&1; then
+    if execute_query "SELECT%201" >/dev/null 2>&1; then
         echo "✅ ClickHouse is responding"
         break
     fi
@@ -54,10 +50,18 @@ echo "🔍 Verifying cluster configuration..."
 
 # Check cluster definition
 echo "   Checking cluster definition..."
-cluster_info=$(execute_query "SELECT cluster, shard_num, replica_num, host_name FROM system.clusters WHERE cluster = 'local_cluster' FORMAT TabSeparated")
+echo "   Debug: Executing cluster query..."
+
+cluster_info=$(execute_query "SELECT%20cluster,%20shard_num,%20replica_num,%20host_name%20FROM%20system.clusters%20WHERE%20cluster%20=%20%27local_cluster%27%20FORMAT%20TabSeparated")
+
+echo "   Debug: Query result length: ${#cluster_info}"
+echo "   Debug: Query result: '$cluster_info'"
 
 if [ -z "$cluster_info" ]; then
     echo "❌ Cluster 'local_cluster' not found in system.clusters"
+    echo "   Debug: Let's check what clusters exist..."
+    all_clusters=$(execute_query "SELECT%20cluster%20FROM%20system.clusters%20FORMAT%20TabSeparated")
+    echo "   Available clusters: '$all_clusters'"
     exit 1
 fi
 
@@ -124,7 +128,7 @@ check_table_on_node() {
     
     echo "   Checking $node_name (port $port)..."
     
-    local count=$(execute_query "SELECT count() FROM sample_db.events" $port 2>/dev/null || echo "0")
+    local count=$(timeout 30 curl -k -s "https://localhost:$port/?query=SELECT%20count()%20FROM%20sample_db.events" 2>/dev/null || echo "0")
     
     if [ "$count" = "5" ]; then
         echo "   ✅ $node_name: $count rows (replication working)"
@@ -135,11 +139,11 @@ check_table_on_node() {
     fi
 }
 
-# Check each node
+# Check each node with correct ports
 replication_ok=true
-if ! check_table_on_node 8123 "clickhouse-1"; then replication_ok=false; fi
-if ! check_table_on_node 8124 "clickhouse-2"; then replication_ok=false; fi
-if ! check_table_on_node 8125 "clickhouse-3"; then replication_ok=false; fi
+if ! check_table_on_node 9001 "clickhouse-1"; then replication_ok=false; fi
+if ! check_table_on_node 9011 "clickhouse-2"; then replication_ok=false; fi
+if ! check_table_on_node 9021 "clickhouse-3"; then replication_ok=false; fi
 
 if [ "$replication_ok" = true ]; then
     echo "✅ Replication is working correctly across all nodes"
@@ -214,7 +218,7 @@ echo "=================="
 echo ""
 echo "🔗 Connection Examples:"
 echo "   # HTTP API:"
-echo "   curl -k 'https://localhost:8123/?query=SELECT version()'"
+echo "   curl -k 'https://localhost:9001/?query=SELECT version()'"
 echo ""
 echo "   # ClickHouse Client (if installed):"
 echo "   clickhouse-client --host localhost --port 9002 --secure"

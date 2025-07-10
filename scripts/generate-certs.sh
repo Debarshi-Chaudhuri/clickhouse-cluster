@@ -91,16 +91,21 @@ DNS.6 = keeper-2
 DNS.7 = keeper-3
 DNS.8 = clickhouse-keeper
 
-# Generic service names
-DNS.9 = localhost
-DNS.10 = local
+# Docker service names (this is the key addition)
+DNS.9 = clickhouse-servers_clickhouse-1
+DNS.10 = clickhouse-servers_clickhouse-2
+DNS.11 = clickhouse-servers_clickhouse-3
+DNS.12 = clickhouse-keepers_keeper-1
+DNS.13 = clickhouse-keepers_keeper-2
+DNS.14 = clickhouse-keepers_keeper-3
 
-# IP addresses
+# Generic service names
+DNS.15 = localhost
+DNS.16 = local
+
+# Basic IP addresses
 IP.1 = 127.0.0.1
 IP.2 = ::1
-IP.3 = 10.0.0.1
-IP.4 = 172.16.0.1
-IP.5 = 192.168.0.1
 EOF
 
 # Generate unified private key
