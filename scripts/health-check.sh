@@ -101,9 +101,9 @@ test_keeper() {
 
 # Test each Keeper node
 keeper_ok=true
-if ! test_keeper 2181 "keeper-1"; then keeper_ok=false; fi
-if ! test_keeper 2182 "keeper-2"; then keeper_ok=false; fi
-if ! test_keeper 2183 "keeper-3"; then keeper_ok=false; fi
+if ! test_keeper 9181 "keeper-1"; then keeper_ok=false; fi
+if ! test_keeper 9182 "keeper-2"; then keeper_ok=false; fi
+if ! test_keeper 9183 "keeper-3"; then keeper_ok=false; fi
 
 echo ""
 

@@ -5,9 +5,8 @@
     <!-- Basic Keeper Settings -->
     <keeper_server>
         <!-- Client port for ClickHouse connections (SSL-enabled) -->
-        <tcp_port remove="true"/>
-        <tcp_port_secure>2181</tcp_port_secure>
-        
+        <tcp_port>9181</tcp_port>
+
         <!-- Keeper server ID (unique per node) -->
         <server_id>${KEEPER_SERVER_ID}</server_id>
         
@@ -37,7 +36,7 @@
             <startup_timeout>240000</startup_timeout>
             
             <!-- Logging -->
-            <raft_logs_level>warning</raft_logs_level>
+            <raft_logs_level>trace</raft_logs_level>
             
             <!-- Compression -->
             <compress_logs>true</compress_logs>
@@ -49,32 +48,26 @@
         
         <!-- Raft cluster configuration (3-node cluster) -->
         <raft_configuration>
-            <secure>1</secure>
+            <secure>0</secure>
             <!-- keeper-1 service in the "keepers" stack -->
             <server>
                 <id>1</id>
                 <hostname>clickhouse-keepers_keeper-1</hostname>
-                <port>2888</port>
-                <can_become_leader>true</can_become_leader>
-                <priority>2</priority>
+                <port>9234</port>
             </server>
 
             <!-- keeper-2 -->
             <server>
                 <id>2</id>
                 <hostname>clickhouse-keepers_keeper-2</hostname>
-                <port>2888</port>
-                <can_become_leader>true</can_become_leader>
-                <priority>1</priority>
+                <port>9234</port>
             </server>
 
             <!-- keeper-3 -->
             <server>
                 <id>3</id>
                 <hostname>clickhouse-keepers_keeper-3</hostname>
-                <port>2888</port>
-                <can_become_leader>true</can_become_leader>
-                <priority>1</priority>
+                <port>9234</port>
             </server>
         </raft_configuration>
 
@@ -102,7 +95,7 @@
     <listen_host>0.0.0.0</listen_host>
     
     <!-- SSL Configuration for Keeper -->
-    <openSSL>
+    <!-- <openSSL>
         <server>
             <certificateFile>/etc/ssl/clickhouse/keeper.crt</certificateFile>
             <privateKeyFile>/etc/ssl/clickhouse/keeper.key</privateKeyFile>
@@ -132,11 +125,7 @@
                 <n>AcceptCertificateHandler</n>
             </invalidCertificateHandler>
         </client>
-    </openSSL>
-    
-    <!-- Memory and performance settings -->
-    <max_memory_usage>2147483648</max_memory_usage>
-    <max_connections>1024</max_connections>
+    </openSSL> -->
     
     <!-- Timezone -->
     <timezone>${TIMEZONE}</timezone>

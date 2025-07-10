@@ -12,18 +12,18 @@
         <!-- Keeper server nodes with SSL -->
         <node>
             <host>clickhouse-keepers_keeper-1</host>
-            <port>2181</port>
-            <secure>1</secure>
+            <port>9181</port>
+            <!-- <secure>1</secure> -->
         </node>
         <node>
             <host>clickhouse-keepers_keeper-2</host>
-            <port>2182</port>
-            <secure>1</secure>
+            <port>9182</port>
+            <!-- <secure>1</secure> -->
         </node>
         <node>
             <host>clickhouse-keepers_keeper-3</host>
-            <port>2183</port>
-            <secure>1</secure>
+            <port>9183</port>
+            <!-- <secure>1</secure> -->
         </node>
     </zookeeper>
 
@@ -40,19 +40,19 @@
                 <replica>
                     <host>clickhouse-servers_clickhouse-1</host>
                     <port>9002</port>
-                    <user>interserver</user>
+                    <!-- <user>interserver</user> -->
                     <secure>1</secure>
                 </replica>
                 <replica>
                     <host>clickhouse-servers_clickhouse-2</host>
                     <port>9002</port>
-                    <user>interserver</user>
+                    <!-- <user>interserver</user> -->
                     <secure>1</secure>
                 </replica>
                 <replica>
                     <host>clickhouse-servers_clickhouse-3</host>
                     <port>9002</port>
-                    <user>interserver</user>
+                    <!-- <user>interserver</user> -->
                     <secure>1</secure>
                 </replica>
             </shard>

@@ -3,12 +3,13 @@ set -e
 
 echo "Starting ClickHouse Keeper configuration processing..."
 
-# Create keeper config directory if it doesn't exist
+# Create keeper config directories
 mkdir -p /etc/clickhouse-keeper
+mkdir -p /etc/clickhouse-keeper/keeper_config.d
 
 # Keeper-specific template directory
 TEMPLATE_DIR="/etc/clickhouse-keeper/templates"
-CONFIG_DIR="/etc/clickhouse-keeper"
+CONFIG_DIR="/etc/clickhouse-keeper/keeper_config.d"
 
 # Function to substitute environment variables in template files
 substitute_template() {
@@ -29,9 +30,27 @@ substitute_template() {
     chmod 644 "$output_file"
 }
 
-# Process all Keeper template files dynamically
+# Create main config.xml (minimal - loads keeper_config.d automatically)
+echo "Creating main config.xml..."
+cat > /etc/clickhouse-keeper/keeper_config.xml <<EOF
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- Main ClickHouse Keeper configuration -->
+    <!-- Additional configurations are auto-loaded from keeper_config.d/ -->
+    <logger>
+        <level>${LOG_LEVEL:-information}</level>
+        <console>true</console>
+    </logger>
+    
+    <listen_host>0.0.0.0</listen_host>
+</clickhouse>
+EOF
+chmod 644 /etc/clickhouse-keeper/keeper_config.xml
+echo "✅ Main config.xml created"
+
+# Process templates into keeper_config.d directory
 if [ -d "$TEMPLATE_DIR" ]; then
-    echo "Processing ClickHouse Keeper configuration templates..."
+    echo "Processing ClickHouse Keeper configuration templates into keeper_config.d/..."
     
     # Find all .xml files and process them as templates
     template_count=0
@@ -68,7 +87,7 @@ if [ -d "$TEMPLATE_DIR" ]; then
     if [ $template_count -eq 0 ]; then
         echo "Warning: No .xml files found in $TEMPLATE_DIR"
     else
-        echo "Successfully processed $template_count Keeper configuration template(s)!"
+        echo "Successfully processed $template_count Keeper configuration template(s) into keeper_config.d/!"
     fi
 else
     echo "Warning: Template directory $TEMPLATE_DIR not found"
@@ -105,9 +124,9 @@ fi
 
 # Create necessary directories for Keeper
 echo "Creating Keeper directories..."
-mkdir -p /var/lib/clickhouse-keeper
+mkdir -p /var/lib/clickhouse-keeper/coordination/log
+mkdir -p /var/lib/clickhouse-keeper/coordination/snapshots
 mkdir -p /var/log/clickhouse-keeper
-mkdir -p /etc/clickhouse-keeper
 mkdir -p /var/run/clickhouse-keeper
 
 # Set proper permissions for Keeper directories (running as root)
@@ -140,7 +159,7 @@ echo "✅ PID directory permissions set successfully"
 # Generated config files - IMPORTANT, should be writable
 echo "Setting permissions on generated config files..."
 config_files_processed=0
-for config_file in /etc/clickhouse-keeper/*.xml; do
+for config_file in /etc/clickhouse-keeper/keeper_config.d/*.xml; do
     if [ -f "$config_file" ]; then
         if [ -w "$config_file" ]; then
             if chown root:root "$config_file"; then
@@ -158,7 +177,7 @@ done
 if [ $config_files_processed -eq 0 ]; then
     echo "⚠️  Warning: No writable config files found to set permissions on"
 else
-    echo "✅ Processed $config_files_processed config files"
+    echo "✅ Processed $config_files_processed config files in keeper_config.d/"
 fi
 
 # Test write access to critical directories
@@ -191,46 +210,24 @@ fi
 rm -f /var/run/clickhouse-keeper/.write_test
 echo "✅ PID directory write access confirmed"
 
-# Wait for other Keeper nodes to be reachable (for cluster formation)
-echo "Checking connectivity to other Keeper nodes..."
-
-# # Hardcoded keeper nodes (matching our templates)
-# keeper_nodes=("clickhouse-keepers_keeper-1:2181" "clickhouse-keepers_keeper-2:2181" "clickhouse-keepers_keeper-3:2181")
-
-# for keeper_entry in "${keeper_nodes[@]}"; do
-#     # Parse keeper entry format: hostname:port
-#     keeper_host=$(echo "$keeper_entry" | cut -d':' -f1)
-#     keeper_port=$(echo "$keeper_entry" | cut -d':' -f2)
-    
-#     # Skip checking connectivity to self
-#     if [ "$keeper_host" = "$INSTANCE_NAME" ]; then
-#         echo "Skipping self connectivity check for $keeper_host"
-#         continue
-#     fi
-    
-#     echo "Checking network connectivity to Keeper node: $keeper_host:$keeper_port"
-    
-#     # Test TCP connectivity without ping (more reliable in containers)
-#     if timeout 3 bash -c "echo > /dev/tcp/$keeper_host/$keeper_port" 2>/dev/null; then
-#         echo "Successfully reached Keeper node: $keeper_host:$keeper_port"
-#     else
-#         echo "Warning: Could not connect to Keeper node: $keeper_host:$keeper_port (this may be normal during initial startup)"
-#     fi
-# done
-
 # Display generated configuration files (for debugging)
 echo "Generated Keeper configuration files:"
+echo "Main config:"
+ls -la /etc/clickhouse-keeper/keeper_config.xml
+echo "keeper_config.d/ files (auto-loaded):"
 ls -la $CONFIG_DIR/
 
-# Check if the main keeper config file exists (expect keeper-config.xml)
+# Check if the keeper config file exists in keeper_config.d (expect keeper-config.xml in keeper_config.d)
 if [ ! -f "$CONFIG_DIR/keeper-config.xml" ]; then
-    echo "Error: Main keeper configuration file not found at $CONFIG_DIR/keeper-config.xml"
+    echo "Error: Keeper configuration file not found at $CONFIG_DIR/keeper-config.xml"
     echo "Make sure you have a keeper-config.xml file in the templates directory"
     exit 1
 fi
 
 echo "Keeper configuration validation completed successfully!"
 
-# Start ClickHouse Keeper
+# Start ClickHouse Keeper with main config (auto-loads keeper_config.d/)
 echo "Starting ClickHouse Keeper server..."
-exec clickhouse-keeper --config-file=/etc/clickhouse-keeper/keeper-config.xml --pid-file=/var/run/clickhouse-keeper/clickhouse-keeper.pid
+echo "Main config: /etc/clickhouse-keeper/keeper_config.xml"
+echo "Additional configs auto-loaded from: /etc/clickhouse-keeper/keeper_config.d/"
+exec clickhouse-keeper --config-file=/etc/clickhouse-keeper/keeper_config.xml --pid-file=/var/run/clickhouse-keeper/clickhouse-keeper.pid

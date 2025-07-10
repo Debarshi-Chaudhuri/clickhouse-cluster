@@ -339,9 +339,9 @@ grep -E "CLICKHOUSE_SERVER_ID|INSTANCE_NAME|CLUSTER_NAME" env/.env.clickhouse1
 docker service logs clickhouse-cluster_keeper-1
 
 # Test Keeper connectivity
-nc -z localhost 2181 && echo "Keeper-1 OK"
-nc -z localhost 2182 && echo "Keeper-2 OK" 
-nc -z localhost 2183 && echo "Keeper-3 OK"
+nc -z localhost 9181 && echo "Keeper-1 OK"
+nc -z localhost 9182 && echo "Keeper-2 OK" 
+nc -z localhost 9183 && echo "Keeper-3 OK"
 ```
 
 ### Performance Issues
