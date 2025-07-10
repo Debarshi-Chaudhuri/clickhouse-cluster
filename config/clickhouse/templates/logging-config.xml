@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- Main Logger Configuration (matches your production setup) -->
+    <logger>
+        <!-- Log level: trace, debug, information, warning, error, fatal -->
+        <level>${LOG_LEVEL}</level>
+        
+        <!-- Enable console output (matches your production setup) -->
+        <console>true</console>
+        
+        <!-- Console log level (can be different from file log level) -->
+        <console_log_level>${CONSOLE_LOG_LEVEL}</console_log_level>
+        
+        <!-- JSON formatting (matches your production setup) -->
+        <formatting>json</formatting>
+        
+        <!-- File logging configuration -->
+        <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+        <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+        
+        <!-- Log rotation settings -->
+        <size>1000M</size>
+        <count>10</count>
+        
+        <!-- Flush log immediately (for real-time monitoring) -->
+        <flush_on_crash>true</flush_on_crash>
+    </logger>
+
+    <!-- Query Logging Configuration -->
+    <query_log>
+        <!-- Store query logs in system database -->
+        <database>system</database>
+        <table>query_log</table>
+        
+        <!-- Partition by month for efficient querying -->
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        
+        <!-- Flush query logs every 7.5 seconds -->
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        
+        <!-- TTL for query logs (optional) -->
+        <ttl>event_date + INTERVAL 30 DAY</ttl>
+        
+        <!-- Enable/disable query logging -->
+        <enabled>${QUERY_LOG_ENABLED}</enabled>
+    </query_log>
+
+    <!-- Query Thread Logging (detailed query execution info) -->
+    <query_thread_log>
+        <database>system</database>
+        <table>query_thread_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <ttl>event_date + INTERVAL 7 DAY</ttl>
+        <enabled>${QUERY_THREAD_LOG_ENABLED}</enabled>
+    </query_thread_log>
+
+    <!-- Part Operations Logging (for monitoring merges, mutations) -->
+    <part_log>
+        <database>system</database>
+        <table>part_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <ttl>event_date + INTERVAL 30 DAY</ttl>
+        <enabled>${PART_LOG_ENABLED}</enabled>
+    </part_log>
+
+    <!-- Metrics Logging (system metrics collection) -->
+    <metric_log>
+        <database>system</database>
+        <table>metric_log</table>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <collect_interval_milliseconds>1000</collect_interval_milliseconds>
+        <ttl>event_date + INTERVAL 7 DAY</ttl>
+        <enabled>${METRIC_LOG_ENABLED}</enabled>
+    </metric_log>
+
+    <!-- Crash Log (for debugging crashes) -->
+    <crash_log>
+        <database>system</database>
+        <table>crash_log</table>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <enabled>true</enabled>
+    </crash_log>
+
+    <!-- Session Log (track user sessions) -->
+    <session_log>
+        <database>system</database>
+        <table>session_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <ttl>event_date + INTERVAL 30 DAY</ttl>
+        <enabled>${SESSION_LOG_ENABLED}</enabled>
+    </session_log>
+
+    <!-- Error Log (application errors) -->
+    <text_log>
+        <database>system</database>
+        <table>text_log</table>
+        <partition_by>toYYYYMM(event_date)</partition_by>
+        <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+        <ttl>event_date + INTERVAL 7 DAY</ttl>
+        <enabled>${TEXT_LOG_ENABLED}</enabled>
+    </text_log>
+
+    <!-- Additional Logging Settings -->
+    
+    <!-- Syslog configuration (optional) -->
+    <syslog>
+        <enabled>${SYSLOG_ENABLED}</enabled>
+        <facility>LOG_LOCAL0</facility>
+        <format>syslog</format>
+    </syslog>
+
+    <!-- Log sampling (reduce log volume in high-traffic scenarios) -->
+    <log_sampling>
+        <!-- Sample 1 in every N queries for query log -->
+        <query_log_sample_rate>${QUERY_LOG_SAMPLE_RATE}</query_log_sample_rate>
+        
+        <!-- Sample 1 in every N queries for trace log -->
+        <trace_log_sample_rate>${TRACE_LOG_SAMPLE_RATE}</trace_log_sample_rate>
+    </log_sampling>
+
+    <!-- Structured logging settings -->
+    <structured_logging>
+        <!-- Include query ID in all log messages -->
+        <include_query_id>true</include_query_id>
+        
+        <!-- Include thread ID in log messages -->
+        <include_thread_id>true</include_thread_id>
+        
+        <!-- Include server instance info -->
+        <include_server_info>true</include_server_info>
+    </structured_logging>
+
+    <!-- Log message formatting -->
+    <log_format>
+        <!-- Timestamp format -->
+        <timestamp_format>%Y-%m-%d %H:%M:%S.%f</timestamp_format>
+        
+        <!-- Include microseconds in timestamps -->
+        <timestamp_precision>microseconds</timestamp_precision>
+    </log_format>
+
+</clickhouse>

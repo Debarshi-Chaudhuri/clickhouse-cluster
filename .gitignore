@@ -1,0 +1,11 @@
+# Ignore all SSL certificates and keys
+secrets/ssl/**/*
+!secrets/ssl/local/.gitkeep
+!secrets/ssl/production/.gitkeep
+
+# Ignore all password files  
+secrets/passwords/**/*
+!secrets/passwords/local/.gitkeep
+!secrets/passwords/production/.gitkeep
+
+/env

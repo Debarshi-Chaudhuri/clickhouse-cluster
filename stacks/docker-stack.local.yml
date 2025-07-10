@@ -1,0 +1,194 @@
+version: '3.8'
+
+services:
+  # ClickHouse Keeper Services
+  keeper-1:
+    image: clickhouse/clickhouse-keeper:latest
+    hostname: keeper-1
+    ports:
+      - "2181:2181"
+      - "2888:2888"
+      - "3888:3888"
+    volumes:
+      - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - keeper-1-data:/var/lib/clickhouse-keeper
+      - keeper-1-logs:/var/log/clickhouse-keeper
+    env_file:
+      - ../env/.env.clickhouse1
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - keeper-network
+      - clickhouse-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.keeper-node == true
+
+  keeper-2:
+    image: clickhouse/clickhouse-keeper:latest
+    hostname: keeper-2
+    ports:
+      - "2182:2181"
+      - "2889:2888"
+      - "3889:3888"
+    volumes:
+      - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - keeper-2-data:/var/lib/clickhouse-keeper
+      - keeper-2-logs:/var/log/clickhouse-keeper
+    env_file:
+      - ../env/.env.clickhouse2
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - keeper-network
+      - clickhouse-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.keeper-node == true
+
+  keeper-3:
+    image: clickhouse/clickhouse-keeper:latest
+    hostname: keeper-3
+    ports:
+      - "2183:2181"
+      - "2890:2888"
+      - "3890:3888"
+    volumes:
+      - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - keeper-3-data:/var/lib/clickhouse-keeper
+      - keeper-3-logs:/var/log/clickhouse-keeper
+    env_file:
+      - ../env/.env.clickhouse3
+    entrypoint: ["/entrypoint.sh"]
+    networks:
+      - keeper-network
+      - clickhouse-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.keeper-node == true
+
+  # ClickHouse Server Services
+  clickhouse-1:
+    image: clickhouse/clickhouse-server:latest
+    hostname: clickhouse-1
+    ports:
+      - "9001:9001"  # HTTPS port (backward compatible)
+      - "9002:9002"  # TCP Secure port
+      - "9440:9440"  # TCP Secure alternative
+    volumes:
+      - ../config/clickhouse/templates:/etc/clickhouse-server/templates:ro
+      - ../config/clickhouse/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - clickhouse-1-data:/var/lib/clickhouse
+      - clickhouse-1-logs:/var/log/clickhouse-server
+    env_file:
+      - ../env/.env.clickhouse1
+    entrypoint: ["/entrypoint.sh"]
+    depends_on:
+      - keeper-1
+      - keeper-2
+      - keeper-3
+    networks:
+      - clickhouse-network
+      - keeper-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.clickhouse-node == true
+
+  clickhouse-2:
+    image: clickhouse/clickhouse-server:latest
+    hostname: clickhouse-2
+    ports:
+      - "9011:9001"  # HTTPS port (different host port)
+      - "9012:9002"  # TCP Secure port  
+      - "9441:9440"  # TCP Secure alternative
+    volumes:
+      - ../config/clickhouse/templates:/etc/clickhouse-server/templates:ro
+      - ../config/clickhouse/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - clickhouse-2-data:/var/lib/clickhouse
+      - clickhouse-2-logs:/var/log/clickhouse-server
+    env_file:
+      - ../env/.env.clickhouse2
+    entrypoint: ["/entrypoint.sh"]
+    depends_on:
+      - keeper-1
+      - keeper-2
+      - keeper-3
+    networks:
+      - clickhouse-network
+      - keeper-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.clickhouse-node == true
+
+  clickhouse-3:
+    image: clickhouse/clickhouse-server:latest
+    hostname: clickhouse-3
+    ports:
+      - "9021:9001"  # HTTPS port (different host port)
+      - "9022:9002"  # TCP Secure port
+      - "9442:9440"  # TCP Secure alternative
+    volumes:
+      - ../config/clickhouse/templates:/etc/clickhouse-server/templates:ro
+      - ../config/clickhouse/entrypoint.sh:/entrypoint.sh:ro
+      - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
+      - ../secrets/passwords/local:/etc/secrets:ro
+      - clickhouse-3-data:/var/lib/clickhouse
+      - clickhouse-3-logs:/var/log/clickhouse-server
+    env_file:
+      - ../env/.env.clickhouse3
+    entrypoint: ["/entrypoint.sh"]
+    depends_on:
+      - keeper-1
+      - keeper-2
+      - keeper-3
+    networks:
+      - clickhouse-network
+      - keeper-network
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.clickhouse-node == true
+
+networks:
+  clickhouse-network:
+    driver: overlay
+    attachable: true
+  keeper-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  keeper-1-data:
+  keeper-2-data:
+  keeper-3-data:
+  keeper-1-logs:
+  keeper-2-logs:
+  keeper-3-logs:
+  clickhouse-1-data:
+  clickhouse-2-data:
+  clickhouse-3-data:
+  clickhouse-1-logs:
+  clickhouse-2-logs:
+  clickhouse-3-logs:

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<config>
+    <!-- ClickHouse Client Config for Production (Backward Compatible) -->
+    <user>${CLIENT_USER}</user>
+    <password>${CLIENT_PASSWORD}</password>
+    <host>${CLICKHOUSE_HOST}</host>
+    <port>${CLICKHOUSE_PORT}</port>
+    <secure>true</secure>
+    
+    <openSSL>
+        <client>
+            <loadDefaultCAFile>false</loadDefaultCAFile>
+            <caConfig>${CLIENT_CA_PATH}</caConfig>
+            <certificateFile>${CLIENT_CERT_PATH}</certificateFile>
+            <privateKeyFile>${CLIENT_KEY_PATH}</privateKeyFile>
+            <cacheSessions>true</cacheSessions>
+            <requireTLSv1_2>true</requireTLSv1_2>
+            <invalidCertificateHandler>
+                <n>RejectCertificateHandler</n>
+            </invalidCertificateHandler>
+            <preferServerCiphers>true</preferServerCiphers>
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+            <extendedVerification>true</extendedVerification>
+            <verificationMode>strict</verificationMode>
+        </client>
+    </openSSL>
+</config>

@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- Memory Management Settings -->
+    
+    <!-- Maximum server memory usage (0 = auto-detect available RAM) -->
+    <max_server_memory_usage>${MAX_SERVER_MEMORY}</max_server_memory_usage>
+    
+    <!-- Maximum memory usage as ratio of total RAM (90% recommended) -->
+    <max_server_memory_usage_to_ram_ratio>${MAX_MEMORY_RATIO}</max_server_memory_usage_to_ram_ratio>
+    
+    <!-- Memory overcommit ratio (allows temporary memory spikes) -->
+    <memory_overcommit_ratio_denominator>${MEMORY_OVERCOMMIT_DENOMINATOR}</memory_overcommit_ratio_denominator>
+
+    <!-- Connection and Query Limits -->
+    <!-- Per-query memory limit: 10GB (prevents single query from using all memory) -->
+    <max_memory_usage>${MAX_MEMORY_USAGE}</max_memory_usage>
+    
+    <!-- Maximum simultaneous connections per server -->
+    <max_connections>${MAX_CONNECTIONS}</max_connections>
+    
+    <!-- Maximum concurrent queries across all users -->
+    <max_concurrent_queries>${MAX_CONCURRENT_QUERIES}</max_concurrent_queries>
+    
+    <!-- Maximum concurrent SELECT queries -->
+    <max_concurrent_select_queries>${MAX_CONCURRENT_SELECT}</max_concurrent_select_queries>
+    
+    <!-- Maximum concurrent INSERT queries -->
+    <max_concurrent_insert_queries>${MAX_CONCURRENT_INSERT}</max_concurrent_insert_queries>
+
+    <!-- Cache Configuration -->
+    
+    <!-- Uncompressed cache size (for frequently accessed data) -->
+    <uncompressed_cache_size>${UNCOMPRESSED_CACHE_SIZE}</uncompressed_cache_size>
+    
+    <!-- Mark cache size (for storing column marks) -->
+    <mark_cache_size>${MARK_CACHE_SIZE}</mark_cache_size>
+    
+    <!-- Index uncompressed cache -->
+    <index_uncompressed_cache_size>${INDEX_CACHE_SIZE}</index_uncompressed_cache_size>
+    
+    <!-- Memory mapped file cache -->
+    <mmap_cache_size>${MMAP_CACHE_SIZE}</mmap_cache_size>
+    
+    <!-- Compiled expressions cache -->
+    <compiled_expression_cache_size>134217728</compiled_expression_cache_size>
+    <compiled_expression_cache_elements_size>10000</compiled_expression_cache_elements_size>
+
+    <!-- Background Processing Configuration -->
+    
+    <!-- Background pool for merges and mutations -->
+    <background_pool_size>${BACKGROUND_POOL_SIZE}</background_pool_size>
+    
+    <!-- Background merges and mutations concurrency -->
+    <background_merges_mutations_concurrency_ratio>${BACKGROUND_CONCURRENCY_RATIO}</background_merges_mutations_concurrency_ratio>
+    
+    <!-- Background schedule pool for periodic tasks -->
+    <background_schedule_pool_size>${BACKGROUND_SCHEDULE_POOL}</background_schedule_pool_size>
+    
+    <!-- Background fetches pool for replication -->
+    <background_fetches_pool_size>${BACKGROUND_FETCHES_POOL}</background_fetches_pool_size>
+    
+    <!-- Background moves pool for data movement -->
+    <background_move_pool_size>${BACKGROUND_MOVE_POOL}</background_move_pool_size>
+    
+    <!-- Background common pool for various tasks -->
+    <background_common_pool_size>${BACKGROUND_COMMON_POOL}</background_common_pool_size>
+
+    <!-- Query Processing Performance -->
+    
+    <!-- Maximum query execution time (0 = unlimited) -->
+    <max_execution_time>${MAX_EXECUTION_TIME}</max_execution_time>
+    
+    <!-- Maximum query size in bytes -->
+    <max_query_size>${MAX_QUERY_SIZE}</max_query_size>
+    
+    <!-- Interactive delay for query responsiveness -->
+    <interactive_delay>100000</interactive_delay>
+    
+    <!-- Partial result timeout -->
+    <partial_result_timeout>10</partial_result_timeout>
+    
+    <!-- Query complexity limits -->
+    <max_ast_depth>1000</max_ast_depth>
+    <max_ast_elements>50000</max_ast_elements>
+    <max_expanded_ast_elements>500000</max_expanded_ast_elements>
+
+    <!-- I/O Performance Settings -->
+    
+    <!-- Maximum number of open files -->
+    <max_open_files>${MAX_OPEN_FILES}</max_open_files>
+    
+    <!-- Merge tree settings for optimal I/O -->
+    <merge_tree>
+        <!-- Maximum parts to merge at once -->
+        <max_parts_in_total>100000</max_parts_in_total>
+        
+        <!-- Maximum bytes to merge -->
+        <max_bytes_to_merge_at_max_space_in_pool>161061273600</max_bytes_to_merge_at_max_space_in_pool>
+        
+        <!-- Maximum replicated merges in queue -->
+        <max_replicated_merges_in_queue>16</max_replicated_merges_in_queue>
+        
+        <!-- Parts to throw insert if too many -->
+        <parts_to_throw_insert>3000</parts_to_throw_insert>
+        
+        <!-- Inactive parts to throw insert -->
+        <inactive_parts_to_throw_insert>0</inactive_parts_to_throw_insert>
+        
+        <!-- Maximum age of parts to merge -->
+        <max_age_to_force_merge_seconds>0</max_age_to_force_merge_seconds>
+        
+        <!-- Merge selecting sleep time -->
+        <merge_selecting_sleep_ms>5000</merge_selecting_sleep_ms>
+    </merge_tree>
+
+    <!-- Distributed Query Performance -->
+    
+    <!-- Connection pool for distributed queries -->
+    <distributed_connections_pool_size>${DISTRIBUTED_POOL_SIZE}</distributed_connections_pool_size>
+    
+    <!-- Distributed product mode (deny for safety) -->
+    <distributed_product_mode>deny</distributed_product_mode>
+    
+    <!-- Memory efficient distributed aggregation -->
+    <distributed_aggregation_memory_efficient>1</distributed_aggregation_memory_efficient>
+
+    <!-- Maximum insert block: 1MB (prevents memory exhaustion during inserts) -->
+    <max_insert_block_size>1048576</max_insert_block_size>
+    
+    <!-- Maximum replica delay for distributed queries -->
+    <max_replica_delay_for_distributed_queries>300</max_replica_delay_for_distributed_queries>
+    
+    <!-- Skip unavailable shards -->
+    <skip_unavailable_shards>1</skip_unavailable_shards>
+
+    <!-- Memory Efficiency Settings -->
+    
+    <!-- External memory settings -->
+    <max_bytes_before_external_group_by>${EXTERNAL_GROUP_BY_BYTES}</max_bytes_before_external_group_by>
+    <max_bytes_before_external_sort>${EXTERNAL_SORT_BYTES}</max_bytes_before_external_sort>
+    
+    <!-- Temporary data in filesystem -->
+    <tmp_policy>default</tmp_policy>
+    <max_temporary_data_on_disk_size_for_user>0</max_temporary_data_on_disk_size_for_user>
+    <max_temporary_data_on_disk_size_for_query>0</max_temporary_data_on_disk_size_for_query>
+
+    <!-- Parallel Processing -->
+    
+    <!-- Maximum threads for query processing -->
+    <max_threads>${MAX_THREADS}</max_threads>
+    
+    <!-- Maximum threads for distributed INSERT -->
+    <max_distributed_connections>1024</max_distributed_connections>
+    
+    <!-- Background processing threads -->
+    <max_thread_pool_size>10000</max_thread_pool_size>
+    <max_thread_pool_free_size>1000</max_thread_pool_free_size>
+    <thread_pool_queue_size>10000</thread_pool_queue_size>
+    
+    <!-- Safety and Reliability -->
+    
+    <!-- Maximum table size to drop without confirmation -->
+    <max_table_size_to_drop>0</max_table_size_to_drop>
+    
+    <!-- Maximum partition size to drop without confirmation -->
+    <max_partition_size_to_drop>0</max_partition_size_to_drop>
+    
+    <!-- Timezone setting -->
+    <timezone>${TIMEZONE}</timezone>
+    
+    <!-- Built-in dictionaries reload interval -->
+    <builtin_dictionaries_reload_interval>3600</builtin_dictionaries_reload_interval>
+
+</clickhouse>

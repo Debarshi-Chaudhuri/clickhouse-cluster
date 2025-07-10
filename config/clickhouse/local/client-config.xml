@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<config>
+    <!-- ClickHouse Client Config for Local Development -->
+    <user>default</user>
+    <password>password</password>
+    <host>localhost</host>
+    <port>9002</port>
+    <secure>true</secure>
+    
+    <openSSL>
+        <client>
+            <loadDefaultCAFile>false</loadDefaultCAFile>
+            <caConfig>../secrets/ssl/local/ca.crt</caConfig>
+            <certificateFile>../secrets/ssl/local/clickhouse-server.crt</certificateFile>
+            <privateKeyFile>../secrets/ssl/local/clickhouse-server.key</privateKeyFile>
+            <cacheSessions>true</cacheSessions>
+            <requireTLSv1_2>true</requireTLSv1_2>
+            <invalidCertificateHandler>
+                <n>RejectCertificateHandler</n>
+            </invalidCertificateHandler>
+            <preferServerCiphers>true</preferServerCiphers>
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+            <extendedVerification>true</extendedVerification>
+            <verificationMode>strict</verificationMode>
+        </client>
+    </openSSL>
+</config>
