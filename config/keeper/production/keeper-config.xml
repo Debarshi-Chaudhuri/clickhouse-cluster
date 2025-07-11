@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<yandex>
+    <!-- ClickHouse Keeper Configuration with SSL Support -->
+    
+    <!-- Basic Keeper Settings -->
+    <keeper_server>
+        <!-- Client port for ClickHouse connections (SSL-enabled) -->
+        <!-- <tcp_port>9181</tcp_port> -->
+        <tcp_port_secure>9181</tcp_port_secure>
+
+        <four_letter_word_white_list>stat,ruok</four_letter_word_white_list>
+        <!-- Keeper server ID (unique per node) -->
+        <server_id>${KEEPER_SERVER_ID}</server_id>
+        
+        <!-- Data storage paths -->
+        <log_storage_path>/var/lib/clickhouse-keeper/coordination/log</log_storage_path>
+        <snapshot_storage_path>/var/lib/clickhouse-keeper/coordination/snapshots</snapshot_storage_path>
+        
+        <!-- Coordination settings -->
+        <coordination_settings>
+            <!-- Basic timeouts -->
+            <operation_timeout_ms>10000</operation_timeout_ms>
+            <session_timeout_ms>30000</session_timeout_ms>
+            <dead_session_check_period_ms>500</dead_session_check_period_ms>
+            <heart_beat_interval_ms>5000</heart_beat_interval_ms>
+            
+            <!-- Leader election -->
+            <election_timeout_lower_bound_ms>5000</election_timeout_lower_bound_ms>
+            <election_timeout_upper_bound_ms>10000</election_timeout_upper_bound_ms>
+            
+            <!-- Log and snapshot management -->
+            <reserved_log_items>100000</reserved_log_items>
+            <snapshot_distance>75000</snapshot_distance>
+            
+            <!-- Performance settings -->
+            <auto_forwarding>true</auto_forwarding>
+            <shutdown_timeout>5000</shutdown_timeout>
+            <startup_timeout>240000</startup_timeout>
+            
+            <!-- Logging -->
+            <raft_logs_level>trace</raft_logs_level>
+            
+            <!-- Compression -->
+            <compress_logs>true</compress_logs>
+            <compress_snapshots_with_zstd_format>true</compress_snapshots_with_zstd_format>
+            
+            <!-- Durability -->
+            <force_sync>true</force_sync>
+        </coordination_settings>
+        
+        <!-- Raft cluster configuration (3-node cluster) -->
+        <raft_configuration>
+            <secure>1</secure>
+            <!-- keeper-1 service in the "keepers" stack -->
+            <server>
+                <id>1</id>
+                <hostname>clickhouse-keepers_keeper-1</hostname>
+                <port>9234</port>
+            </server>
+
+            <!-- keeper-2 -->
+            <server>
+                <id>2</id>
+                <hostname>clickhouse-keepers_keeper-2</hostname>
+                <port>9234</port>
+            </server>
+
+            <!-- keeper-3 -->
+            <server>
+                <id>3</id>
+                <hostname>clickhouse-keepers_keeper-3</hostname>
+                <port>9234</port>
+            </server>
+        </raft_configuration>
+
+    </keeper_server>
+    
+    <!-- Logging Configuration -->
+    <logger>
+        <level>${LOG_LEVEL}</level>
+        <console>true</console>
+        <console_log_level>${CONSOLE_LOG_LEVEL}</console_log_level>
+        
+        <!-- Log files -->
+        <log>/var/log/clickhouse-keeper/clickhouse-keeper.log</log>
+        <errorlog>/var/log/clickhouse-keeper/clickhouse-keeper.err.log</errorlog>
+        
+        <!-- Log rotation -->
+        <size>1000M</size>
+        <count>10</count>
+        
+        <!-- JSON formatting for structured logs -->
+        <formatting>json</formatting>
+    </logger>
+    
+    <!-- Network settings -->
+    <listen_host>0.0.0.0</listen_host>
+    
+    <!-- SSL Configuration for Keeper -->
+    <openSSL>
+        <server>
+            <certificateFile>/etc/ssl/clickhouse/keeper.crt</certificateFile>
+            <privateKeyFile>/etc/ssl/clickhouse/keeper.key</privateKeyFile>
+            <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
+            <loadDefaultCAFile>false</loadDefaultCAFile>
+            <verificationMode>relaxed</verificationMode>
+            <cacheSessions>true</cacheSessions>
+            <requireTLSv1_2>true</requireTLSv1_2>
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+            <preferServerCiphers>true</preferServerCiphers>
+            <invalidCertificateHandler>
+                <n>AcceptCertificateHandler</n>
+            </invalidCertificateHandler>
+        </server>
+        
+        <client>
+            <certificateFile>/etc/ssl/clickhouse/keeper.crt</certificateFile>
+            <privateKeyFile>/etc/ssl/clickhouse/keeper.key</privateKeyFile>
+            <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
+            <loadDefaultCAFile>false</loadDefaultCAFile>
+            <verificationMode>relaxed</verificationMode>
+            <cacheSessions>true</cacheSessions>
+            <requireTLSv1_2>true</requireTLSv1_2>
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+            <preferServerCiphers>true</preferServerCiphers>
+            <invalidCertificateHandler>
+                <n>AcceptCertificateHandler</n>
+            </invalidCertificateHandler>
+        </client>
+    </openSSL>
+    
+    <!-- Timezone -->
+    <timezone>${TIMEZONE}</timezone>
+
+</yandex>

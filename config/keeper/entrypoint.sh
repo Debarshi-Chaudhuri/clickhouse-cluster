@@ -7,7 +7,7 @@ echo "Starting ClickHouse Keeper configuration processing..."
 mkdir -p /etc/clickhouse-keeper
 mkdir -p /etc/clickhouse-keeper/keeper_config.d
 
-# Keeper-specific template directory
+# Keeper-specific template directory - UPDATED PATH
 TEMPLATE_DIR="/etc/clickhouse-keeper/templates"
 CONFIG_DIR="/etc/clickhouse-keeper/keeper_config.d"
 
@@ -48,49 +48,85 @@ EOF
 chmod 644 /etc/clickhouse-keeper/keeper_config.xml
 echo "✅ Main config.xml created"
 
-# Process templates into keeper_config.d directory
-if [ -d "$TEMPLATE_DIR" ]; then
-    echo "Processing ClickHouse Keeper configuration templates into keeper_config.d/..."
+# Process templates from both templates and local directories
+TEMPLATES_DIR="/etc/clickhouse-keeper/templates"
+LOCAL_DIR="/etc/clickhouse-keeper/local"
+
+total_template_count=0
+
+# Process templates from templates directory
+if [ -d "$TEMPLATES_DIR" ]; then
+    echo "Processing ClickHouse Keeper configuration templates from templates directory..."
     
-    # Find all .xml files and process them as templates
     template_count=0
-    for template_file in "$TEMPLATE_DIR"/*.xml; do
-        # Check if file exists (handles case where no .xml files exist)
+    for template_file in "$TEMPLATES_DIR"/*.xml; do
         if [ -f "$template_file" ]; then
-            # Get the base filename 
             base_name=$(basename "$template_file")
             output_file="$CONFIG_DIR/$base_name"
             
             substitute_template "$template_file" "$output_file"
             template_count=$((template_count + 1))
+            echo "   Processed from templates: $base_name"
         fi
     done
     
-    # Also process any subdirectories with templates
-    for subdir in "$TEMPLATE_DIR"/*/; do
+    total_template_count=$((total_template_count + template_count))
+    echo "Successfully processed $template_count template(s) from templates directory!"
+else
+    echo "Warning: Templates directory $TEMPLATES_DIR not found"
+fi
+
+# Process templates from local directory  
+if [ -d "$LOCAL_DIR" ]; then
+    echo "Processing ClickHouse Keeper configuration templates from local directory..."
+    
+    local_count=0
+    for template_file in "$LOCAL_DIR"/*.xml; do
+        if [ -f "$template_file" ]; then
+            base_name=$(basename "$template_file")
+            output_file="$CONFIG_DIR/$base_name"
+            
+            substitute_template "$template_file" "$output_file"
+            local_count=$((local_count + 1))
+            echo "   Processed from local: $base_name"
+        fi
+    done
+    
+    total_template_count=$((total_template_count + local_count))
+    echo "Successfully processed $local_count template(s) from local directory!"
+else
+    echo "Warning: Local directory $LOCAL_DIR not found"
+fi
+
+# Process any subdirectories in templates directory
+if [ -d "$TEMPLATES_DIR" ]; then
+    for subdir in "$TEMPLATES_DIR"/*/; do
         if [ -d "$subdir" ]; then
             subdir_name=$(basename "$subdir")
             mkdir -p "$CONFIG_DIR/$subdir_name"
             
+            echo "Processing subdirectory: $subdir_name"
             for template_file in "$subdir"*.xml; do
                 if [ -f "$template_file" ]; then
                     base_name=$(basename "$template_file")
                     output_file="$CONFIG_DIR/$subdir_name/$base_name"
                     
                     substitute_template "$template_file" "$output_file"
-                    template_count=$((template_count + 1))
+                    total_template_count=$((total_template_count + 1))
+                    echo "   Processed from $subdir_name: $base_name"
                 fi
             done
         fi
     done
-    
-    if [ $template_count -eq 0 ]; then
-        echo "Warning: No .xml files found in $TEMPLATE_DIR"
-    else
-        echo "Successfully processed $template_count Keeper configuration template(s) into keeper_config.d/!"
-    fi
+fi
+
+if [ $total_template_count -eq 0 ]; then
+    echo "Warning: No .xml files found in any template directories"
+    echo "Checked directories:"
+    echo "  - $TEMPLATES_DIR"
+    echo "  - $LOCAL_DIR"
 else
-    echo "Warning: Template directory $TEMPLATE_DIR not found"
+    echo "Successfully processed $total_template_count Keeper configuration template(s) total!"
 fi
 
 # Validate required environment variables for Keeper
@@ -114,6 +150,9 @@ echo "Keeper environment variables validated successfully!"
 echo "=== ClickHouse Keeper Configuration Summary ==="
 echo "Keeper Server ID: $KEEPER_SERVER_ID"
 echo "Instance Name: $INSTANCE_NAME"
+echo "Log Level: ${LOG_LEVEL:-information}"
+echo "Console Log Level: ${CONSOLE_LOG_LEVEL:-warning}"
+echo "Timezone: ${TIMEZONE:-UTC}"
 echo "================================================="
 
 # Validate Keeper Server ID is within valid range (1-255)
@@ -215,12 +254,13 @@ echo "Generated Keeper configuration files:"
 echo "Main config:"
 ls -la /etc/clickhouse-keeper/keeper_config.xml
 echo "keeper_config.d/ files (auto-loaded):"
-ls -la $CONFIG_DIR/
+ls -la $CONFIG_DIR/ 2>/dev/null || echo "No files in keeper_config.d/"
 
 # Check if the keeper config file exists in keeper_config.d (expect keeper-config.xml in keeper_config.d)
 if [ ! -f "$CONFIG_DIR/keeper-config.xml" ]; then
     echo "Error: Keeper configuration file not found at $CONFIG_DIR/keeper-config.xml"
     echo "Make sure you have a keeper-config.xml file in the templates directory"
+    echo "Template directory: $TEMPLATE_DIR"
     exit 1
 fi
 

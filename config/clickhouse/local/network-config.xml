@@ -7,11 +7,12 @@
     <default_database>${DEFAULT_DATABASE}</default_database>
 
     <!-- DISABLE INSECURE PORTS (Production Security) -->
-    <http_port remove="true" />
+    <!-- <http_port remove="true" /> -->
     <tcp_port remove="true" />
     <interserver_http_port remove="true" />
     <mysql_port remove="true" />
 
+    <http_port>8123</http_port>
     <!-- SECURE PORTS ONLY -->
     <!-- HTTPS Port (Web Interface, REST API) -->
     <https_port>${HTTPS_PORT}</https_port>

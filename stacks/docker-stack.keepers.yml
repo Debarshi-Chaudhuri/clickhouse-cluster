@@ -10,6 +10,7 @@ services:
       - "3888:3888"
     volumes:
       - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/local:/etc/clickhouse-keeper/local:ro
       - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
       - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
       - ../secrets/passwords/local:/etc/secrets:ro
@@ -38,6 +39,7 @@ services:
       - "3889:3888"
     volumes:
       - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/local:/etc/clickhouse-keeper/local:ro
       - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
       - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
       - ../secrets/passwords/local:/etc/secrets:ro
@@ -66,6 +68,7 @@ services:
       - "3890:3888"
     volumes:
       - ../config/keeper/templates:/etc/clickhouse-keeper/templates:ro
+      - ../config/keeper/local:/etc/clickhouse-keeper/local:ro
       - ../config/keeper/entrypoint.sh:/entrypoint.sh:ro
       - ../secrets/ssl/local:/etc/ssl/clickhouse:ro
       - ../secrets/passwords/local:/etc/secrets:ro

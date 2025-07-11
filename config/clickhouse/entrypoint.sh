@@ -9,7 +9,7 @@ mkdir -p /etc/clickhouse-server/users.d
 mkdir -p /var/lib/clickhouse
 mkdir -p /var/log/clickhouse-server
 
-# Template directories
+# Template directories - UPDATED PATHS
 CONFIG_TEMPLATE_DIR="/etc/clickhouse-server/config-templates"
 USER_TEMPLATE_DIR="/etc/clickhouse-server/user-templates"
 CONFIG_DIR="/etc/clickhouse-server/config.d"
@@ -29,6 +29,7 @@ substitute_template() {
          s/\${CLUSTER_NAME}/'"$CLUSTER_NAME"'/g;
          s/\${DEFAULT_DATABASE}/'"$DEFAULT_DATABASE"'/g;
          s/\${HTTPS_PORT}/'"${HTTPS_PORT:-9001}"'/g;
+         s/\${HTTP_PORT}/'"${HTTP_PORT:-8123}"'/g;
          s/\${TCP_SECURE_PORT}/'"${TCP_SECURE_PORT:-9002}"'/g;
          s/\${POSTGRESQL_PORT}/'"${POSTGRESQL_PORT:-9003}"'/g;
          s/\${INTERSERVER_HTTPS_PORT}/'"${INTERSERVER_HTTPS_PORT:-9010}"'/g;
@@ -82,7 +83,8 @@ substitute_template() {
          s/\${S3_ACCESS_KEY}/'"${S3_ACCESS_KEY:-}"'/g;
          s/\${S3_SECRET_KEY}/'"${S3_SECRET_KEY:-}"'/g;
          s/\${S3_BUCKET_NAME}/'"${S3_BUCKET_NAME:-}"'/g;
-         s/\${S3_REGION}/'"${S3_REGION:-}"'/g' \
+         s/\${S3_REGION}/'"${S3_REGION:-}"'/g;
+         s/\${MAX_MEMORY_USAGE}/'"${MAX_MEMORY_USAGE:-10000000000}"'/g' \
     "$template_file" > "$output_file"
     
     chmod 644 "$output_file"
@@ -92,9 +94,9 @@ echo "=== All environment variables (sorted) ==="
 env | sort
 echo "=========================================="
 
-# Process ClickHouse configuration templates
+# Process ClickHouse configuration templates from config-templates directory
 if [ -d "$CONFIG_TEMPLATE_DIR" ]; then
-    echo "Processing ClickHouse configuration templates..."
+    echo "Processing ClickHouse configuration templates from config-templates..."
     
     template_count=0
     for template_file in "$CONFIG_TEMPLATE_DIR"/*.xml; do
@@ -106,9 +108,36 @@ if [ -d "$CONFIG_TEMPLATE_DIR" ]; then
         fi
     done
     
-    echo "Successfully processed $template_count configuration template(s)!"
+    echo "Successfully processed $template_count configuration template(s) from config-templates!"
 else
     echo "Warning: Config template directory $CONFIG_TEMPLATE_DIR not found"
+fi
+
+# Process ClickHouse configuration files from local directory (skip client-config.xml)
+LOCAL_CONFIG_DIR="/etc/clickhouse-server/local"
+if [ -d "$LOCAL_CONFIG_DIR" ]; then
+    echo "Processing ClickHouse configuration files from local directory..."
+    
+    local_count=0
+    for config_file in "$LOCAL_CONFIG_DIR"/*.xml; do
+        if [ -f "$config_file" ]; then
+            base_name=$(basename "$config_file")
+            
+            # Skip client-config.xml as it's for client use, not server
+            if [ "$base_name" != "client-config.xml" ]; then
+                output_file="$CONFIG_DIR/$base_name"
+                substitute_template "$config_file" "$output_file"
+                local_count=$((local_count + 1))
+                echo "   Processed: $base_name"
+            else
+                echo "   Skipped: $base_name (client configuration)"
+            fi
+        fi
+    done
+    
+    echo "Successfully processed $local_count configuration file(s) from local directory!"
+else
+    echo "Warning: Local config directory $LOCAL_CONFIG_DIR not found"
 fi
 
 # Process ClickHouse user templates
@@ -156,6 +185,11 @@ echo "Server ID: $CLICKHOUSE_SERVER_ID"
 echo "Instance Name: $INSTANCE_NAME"
 echo "Interserver Host: $INTERSERVER_HOST"
 echo "Cluster Name: $CLUSTER_NAME"
+echo "Default Database: $DEFAULT_DATABASE"
+echo "HTTPS Port: ${HTTPS_PORT:-9001}"
+echo "HTTP Port: ${HTTP_PORT:-8123}"
+echo "TCP Secure Port: ${TCP_SECURE_PORT:-9002}"
+echo "Interserver HTTPS Port: ${INTERSERVER_HTTPS_PORT:-9010}"
 echo "========================================"
 
 # Start ClickHouse server (running as clickhouse user via Docker)

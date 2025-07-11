@@ -1,0 +1,136 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- SSL/TLS Configuration for Secure Communication - Fixed for v25.6.2.5 -->
+    <openSSL>
+        <!-- Server SSL Configuration (for incoming connections) -->
+        <server>
+            <!-- Disable loading default CA file (use custom CA) -->
+            <loadDefaultCAFile>false</loadDefaultCAFile>
+            
+            <!-- Custom Certificate Authority file -->
+            <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
+            
+            <!-- Server certificate for this ClickHouse instance -->
+            <certificateFile>/etc/ssl/clickhouse/clickhouse-server.crt</certificateFile>
+            
+            <!-- Server private key for this ClickHouse instance -->
+            <privateKeyFile>/etc/ssl/clickhouse/clickhouse-server.key</privateKeyFile>
+            
+            <!-- Verification mode: relaxed for server (allows clients without certificates) -->
+            <verificationMode>relaxed</verificationMode>
+            
+            <!-- Cache SSL sessions for performance -->
+            <cacheSessions>true</cacheSessions>
+            
+            <!-- Require TLS 1.2 or higher for security -->
+            <requireTLSv1_2>true</requireTLSv1_2>
+            
+            <!-- How to handle invalid certificates -->
+            <invalidCertificateHandler>
+                <n>AcceptCertificateHandler</n>
+            </invalidCertificateHandler>
+            
+            <!-- Prefer server cipher selection for security -->
+            <preferServerCiphers>true</preferServerCiphers>
+            
+            <!-- Disable insecure SSL/TLS protocols -->
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+        </server>
+
+        <!-- Client SSL Configuration (for outgoing connections to Keeper and other nodes) -->
+        <client>
+            <!-- Load default CA files AND custom CA -->
+            <loadDefaultCAFile>true</loadDefaultCAFile>
+            
+            <!-- Custom Certificate Authority file -->
+            <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
+            
+            <!-- Client certificate for connecting to other services -->
+            <certificateFile>/etc/ssl/clickhouse/clickhouse-server.crt</certificateFile>
+            
+            <!-- Client private key for connecting to other services -->
+            <privateKeyFile>/etc/ssl/clickhouse/clickhouse-server.key</privateKeyFile>
+            
+            <!-- Verification mode: strict for outgoing connections -->
+            <verificationMode>relaxed</verificationMode>
+            
+            <!-- Cache SSL sessions for performance -->
+            <cacheSessions>true</cacheSessions>
+            
+            <!-- Require TLS 1.2 or higher for security -->
+            <requireTLSv1_2>true</requireTLSv1_2>
+            
+            <!-- How to handle invalid certificates -->
+            <invalidCertificateHandler>
+                <n>AcceptCertificateHandler</n>
+            </invalidCertificateHandler>
+            
+            <!-- Prefer server cipher selection for security -->
+            <preferServerCiphers>true</preferServerCiphers>
+            
+            <!-- Disable insecure SSL/TLS protocols -->
+            <disableProtocols>sslv2,sslv3</disableProtocols>
+        </client>
+    </openSSL>
+
+    <!-- Interserver TLS Credentials (password-based authentication) -->
+    <interserver_http_credentials>
+        <user>interserver</user>
+        <password_file>/etc/secrets/clickhouse-password.txt</password_file>
+        <secure>1</secure>
+    </interserver_http_credentials>
+
+    <!-- Additional SSL Security Settings -->
+    
+    <!-- Force SSL for specific interfaces -->
+    <ssl_options>
+        <!-- Minimum SSL/TLS version -->
+        <min_protocol_version>tlsv1_2</min_protocol_version>
+        
+        <!-- Maximum SSL/TLS version -->
+        <max_protocol_version>tlsv1_3</max_protocol_version>
+        
+        <!-- Cipher list (secure ciphers only) -->
+        <cipher_list>ECDHE+AESGCM:ECDHE+CHACHA20:DHE+AESGCM:DHE+CHACHA20:!aNULL:!MD5:!DSS</cipher_list>
+        
+        <!-- Prefer server cipher order -->
+        <prefer_server_ciphers>true</prefer_server_ciphers>
+        
+        <!-- SSL session timeout -->
+        <session_timeout>300</session_timeout>
+        
+        <!-- SSL session cache size -->
+        <session_cache_size>1000</session_cache_size>
+    </ssl_options>
+
+    <!-- Certificate validation settings -->
+    <certificate_validation>
+        <!-- Enable hostname verification for outgoing connections -->
+        <verify_hostname>false</verify_hostname>
+        
+        <!-- Certificate expiration warning (days before expiry) -->
+        <expiration_warning_days>90</expiration_warning_days>
+        
+        <!-- Disable certificate revocation list checking for development -->
+        <check_crl>false</check_crl>
+        
+        <!-- Disable OCSP checking for development -->
+        <check_ocsp>false</check_ocsp>
+    </certificate_validation>
+
+    <!-- SSL performance tuning -->
+    <ssl_performance>
+        <!-- Enable SSL session reuse -->
+        <session_reuse>true</session_reuse>
+        
+        <!-- SSL handshake timeout -->
+        <handshake_timeout>10</handshake_timeout>
+        
+        <!-- SSL read timeout -->
+        <read_timeout>30</read_timeout>
+        
+        <!-- SSL write timeout -->
+        <write_timeout>30</write_timeout>
+    </ssl_performance>
+
+</clickhouse>

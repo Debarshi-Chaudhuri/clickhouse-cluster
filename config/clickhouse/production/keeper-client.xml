@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- ClickHouse Keeper Client Configuration with Proper SSL -->
+    
+    <!-- ZooKeeper/Keeper Client Configuration -->
+    <zookeeper>
+        <!-- Basic connection settings -->
+        <session_timeout_ms>30000</session_timeout_ms>
+        <operation_timeout_ms>10000</operation_timeout_ms>
+        
+        <!-- Keeper server nodes with SSL -->
+        <node>
+            <host>clickhouse-keepers_keeper-1</host>
+            <port>9181</port>
+            <secure>1</secure>
+        </node>
+        <node>
+            <host>clickhouse-keepers_keeper-2</host>
+            <port>9181</port>
+            <secure>1</secure>
+        </node>
+        <node>
+            <host>clickhouse-keepers_keeper-3</host>
+            <port>9181</port>
+            <secure>1</secure>
+        </node>
+    </zookeeper>
+
+    <!-- Distributed DDL Configuration -->
+    <distributed_ddl>
+        <path>/clickhouse/task_queue/ddl</path>
+        <profile>default</profile>
+    </distributed_ddl>
+
+    <!-- Remote Servers Configuration (1 shard, 3 replicas) - FIXED -->
+    <remote_servers>
+        <${CLUSTER_NAME}>
+            <shard>
+                <internal_replication>true</internal_replication>
+                <replica>
+                    <host>clickhouse-servers_clickhouse-1</host>
+                    <port>9002</port>
+                    <user>interserver</user>
+                    <secure>1</secure>
+                </replica>
+                <replica>
+                    <host>clickhouse-servers_clickhouse-2</host>
+                    <port>9002</port>
+                    <user>interserver</user>
+                    <secure>1</secure>
+                </replica>
+                <replica>
+                    <host>clickhouse-servers_clickhouse-3</host>
+                    <port>9002</port>
+                    <user>interserver</user>
+                    <secure>1</secure>
+                </replica>
+            </shard>
+        </${CLUSTER_NAME}>
+    </remote_servers>
+
+    <!-- Macros for ReplicatedMergeTree tables -->
+    <macros>
+        <cluster>${CLUSTER_NAME}</cluster>
+        <shard>01</shard>
+        <replica>${INSTANCE_NAME}</replica>
+    </macros>
+
+</clickhouse>

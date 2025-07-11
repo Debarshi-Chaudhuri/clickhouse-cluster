@@ -32,7 +32,7 @@ curl -k -s -X POST "https://localhost:9001/" -d "CREATE TABLE IF NOT EXISTS one_
 echo ""
 
 echo "6. Inserting test data..."
-curl -k -s -X POST "https://localhost:9001/" -d "INSERT INTO one_pice_dev.events VALUES ('2024-01-01 10:00:00', 1001, 'login'), ('2024-01-01 10:05:00', 1002, 'page_view'), ('2024-01-01 10:10:00', 1001, 'purchase')"
+curl -k -s -X POST "https://localhost:9001/" -d "INSERT INTO one_pice_dev.events VALUES ('2024-01-01 10:00:00', 1021, 'login'), ('2024-01-01 10:05:00', 1002, 'page_view'), ('2024-01-01 10:10:00', 10011, 'purchase')"
 echo ""
 
 echo "7. Waiting for replication..."
@@ -50,7 +50,7 @@ curl -k -s -X POST "https://localhost:9021/" -d "SELECT hostName(), count() FROM
 echo ""
 
 echo "9. Testing new data insertion and replication..."
-curl -k -s -X POST "https://localhost:9001/" -d "INSERT INTO one_pice_dev.events VALUES ('2024-01-01 11:00:00', 2001, 'test_replication')"
+curl -k -s -X POST "https://localhost:9001/" -d "INSERT INTO one_pice_dev.events VALUES ('2024-01-01 11:00:00', 2009, 'test_replication')"
 echo ""
 sleep 5
 

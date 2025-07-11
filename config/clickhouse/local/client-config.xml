@@ -10,9 +10,9 @@
     <openSSL>
         <client>
             <loadDefaultCAFile>false</loadDefaultCAFile>
-            <caConfig>../secrets/ssl/local/ca.crt</caConfig>
-            <certificateFile>../secrets/ssl/local/clickhouse-server.crt</certificateFile>
-            <privateKeyFile>../secrets/ssl/local/clickhouse-server.key</privateKeyFile>
+            <caConfig>/etc/ssl/clickhouse/ca.crt</caConfig>
+            <certificateFile>/etc/ssl/clickhouse/clickhouse-server.crt</certificateFile>
+            <privateKeyFile>/etc/ssl/clickhouse/clickhouse-server.key</privateKeyFile>
             <cacheSessions>true</cacheSessions>
             <requireTLSv1_2>true</requireTLSv1_2>
             <invalidCertificateHandler>

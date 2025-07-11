@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<clickhouse>
+    <!-- Network Listening Configuration -->
+    <listen_host>0.0.0.0</listen_host>
+    
+    <!-- Default Database (for backward compatibility) -->
+    <default_database>${DEFAULT_DATABASE}</default_database>
+
+    <!-- DISABLE INSECURE PORTS (Production Security) -->
+    <!-- <http_port remove="true" /> -->
+    <tcp_port remove="true" />
+    <interserver_http_port remove="true" />
+    <mysql_port remove="true" />
+
+    <http_port>8123</http_port>
+    <!-- SECURE PORTS ONLY -->
+    <!-- HTTPS Port (Web Interface, REST API) -->
+    <https_port>${HTTPS_PORT}</https_port>
+    
+    <!-- TCP Secure Port (Native ClickHouse Protocol) -->
+    <tcp_port_secure>${TCP_SECURE_PORT}</tcp_port_secure>
+    
+    <!-- PostgreSQL Wire Protocol Port -->
+    <postgresql_port>${POSTGRESQL_PORT}</postgresql_port>
+    
+    <!-- Secure Interserver Communication Port -->
+    <interserver_https_port>${INTERSERVER_HTTPS_PORT}</interserver_https_port>
+    
+    <!-- Optional: Interserver Host (for multi-node clusters) -->
+    <interserver_https_host>${INTERSERVER_HOST}</interserver_https_host>
+
+    <!-- Additional Secure Ports (Optional) -->
+    <!-- gRPC Secure Port -->
+    <grpc_port_secure>${GRPC_SECURE_PORT}</grpc_port_secure>
+
+    <!-- Network Security Settings -->
+    <keep_alive_timeout>10</keep_alive_timeout>
+    <max_session_timeout>3600</max_session_timeout>
+    <default_session_timeout>60</default_session_timeout>
+    
+    <!-- Connection Limits -->
+    <max_connections>2048</max_connections>
+    <max_concurrent_queries>500</max_concurrent_queries>
+    
+    
+    <!-- Network Buffer Sizes -->
+    <!-- TCP keep-alive disabled: 0 (relies on application-level keep-alive instead) -->
+    <!-- Listen queue size: 4096 (handles connection bursts without dropping) -->
+    <listen_backlog>4096</listen_backlog>
+    
+    <!-- Disable potentially insecure protocols -->
+    <disable_internal_dns_cache>0</disable_internal_dns_cache>
+    
+    <!-- HTTP Interface Security -->
+    <http_server_default_response><![CDATA[<html><head><title>ClickHouse Server</title></head><body>ClickHouse server is running.</body></html>]]></http_server_default_response>
+    
+    <!-- Custom Headers for Security -->
+    <custom_settings_prefixes>custom_</custom_settings_prefixes>
+    
+    <!-- DNS Security -->
+    <disable_internal_dns_cache>0</disable_internal_dns_cache>
+    <dns_cache_update_period>15</dns_cache_update_period>
+    
+</clickhouse>
