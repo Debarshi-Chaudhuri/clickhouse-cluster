@@ -70,11 +70,11 @@ if docker stack ls --format "{{.Name}}" | grep -q "clickhouse"; then
     sleep 30
 fi
 
-# Clean up old networks
+# Clean up old networks (but ignore errors)
 echo "   Cleaning up old networks..."
-docker network rm clickhouse-network 2>/dev/null || echo "   clickhouse-network didn't exist"
-docker network rm keeper-network 2>/dev/null || echo "   keeper-network didn't exist"
-docker network rm shared-network 2>/dev/null || echo "   shared-network didn't exist"
+docker network rm clickhouse-network 2>/dev/null || true
+docker network rm keeper-network 2>/dev/null || true
+docker network rm shared-network 2>/dev/null || true
 
 echo "✅ Cleanup completed"
 echo ""
@@ -166,13 +166,17 @@ echo "✅ Node labels configured for single-node deployment"
 # Create unified overlay network
 echo "🌐 Creating unified Docker overlay network..."
 
-# Create shared-network for all services
-echo "   Creating shared-network..."
-docker network create \
-    --driver overlay \
-    --attachable \
-    shared-network
-echo "   ✅ shared-network created"
+# Check if network already exists, create if not
+if ! docker network ls --format "{{.Name}}" | grep -q "^shared-network$"; then
+    echo "   Creating shared-network..."
+    docker network create \
+        --driver overlay \
+        --attachable \
+        shared-network
+    echo "   ✅ shared-network created"
+else
+    echo "   ✅ shared-network already exists"
+fi
 
 echo "✅ Docker unified network configured successfully"
 
@@ -282,7 +286,7 @@ echo "✅ All ClickHouse services are ready!"
 echo ""
 
 # =============================================================================
-# 10. COMPREHENSIVE HEALTH CHECK
+# 9. COMPREHENSIVE HEALTH CHECK
 # =============================================================================
 echo "🏥 Running comprehensive health checks..."
 
@@ -312,6 +316,14 @@ if ! check_clickhouse 9001 "clickhouse-1"; then health_ok=false; fi
 if ! check_clickhouse 9011 "clickhouse-2"; then health_ok=false; fi  
 if ! check_clickhouse 9021 "clickhouse-3"; then health_ok=false; fi
 
+# Test interserver connectivity
+echo "   Testing interserver HTTPS ports..."
+if curl -k --connect-timeout 5 -s "https://localhost:9010" >/dev/null 2>&1; then
+    echo "   ✅ Interserver port 9010 responding"
+else
+    echo "   ⚠️  Interserver port 9010 not responding"
+fi
+
 # Test cluster formation (if ClickHouse is responding)
 if [ "$health_ok" = true ]; then
     echo "   Testing cluster connectivity..."
@@ -320,6 +332,31 @@ if [ "$health_ok" = true ]; then
     else
         echo "   ⚠️  ClickHouse cluster configuration may not be ready yet"
     fi
+fi
+
+# Test replication if cluster is working
+if [ "$health_ok" = true ]; then
+    echo "   Testing data replication..."
+    # Insert a test record
+    curl -k -s -X POST "https://localhost:9001/" -d "CREATE DATABASE IF NOT EXISTS test_replication" >/dev/null 2>&1
+    curl -k -s -X POST "https://localhost:9001/" -d "CREATE TABLE IF NOT EXISTS test_replication.test_table ON CLUSTER local_cluster (id UInt32, message String) ENGINE = ReplicatedMergeTree('/clickhouse/tables/{shard}/test_table', '{replica}') ORDER BY id" >/dev/null 2>&1
+    curl -k -s -X POST "https://localhost:9001/" -d "INSERT INTO test_replication.test_table VALUES (1, 'replication_test')" >/dev/null 2>&1
+    
+    sleep 5
+    
+    # Check if data replicated
+    count1=$(curl -k -s -X POST "https://localhost:9001/" -d "SELECT count() FROM test_replication.test_table" 2>/dev/null || echo "0")
+    count2=$(curl -k -s -X POST "https://localhost:9011/" -d "SELECT count() FROM test_replication.test_table" 2>/dev/null || echo "0")
+    count3=$(curl -k -s -X POST "https://localhost:9021/" -d "SELECT count() FROM test_replication.test_table" 2>/dev/null || echo "0")
+    
+    if [ "$count1" = "$count2" ] && [ "$count2" = "$count3" ] && [ "$count1" != "0" ]; then
+        echo "   ✅ Data replication is working (all nodes: $count1 records)"
+    else
+        echo "   ⚠️  Data replication may not be working (counts: $count1, $count2, $count3)"
+    fi
+    
+    # Cleanup test table
+    curl -k -s -X POST "https://localhost:9001/" -d "DROP DATABASE IF EXISTS test_replication ON CLUSTER local_cluster" >/dev/null 2>&1
 fi
 
 if [ "$health_ok" = true ]; then
@@ -331,7 +368,7 @@ fi
 echo ""
 
 # =============================================================================
-# 11. DEPLOYMENT SUMMARY
+# 10. DEPLOYMENT SUMMARY
 # =============================================================================
 echo "🎉 ClickHouse Cluster Sequential Deployment Summary"
 echo "=================================================="
@@ -353,9 +390,9 @@ echo "   Nodes: 3 ClickHouse + 3 Keeper"
 echo "   Replication: 1 shard with 3 replicas"
 echo ""
 echo "🌐 Access Points:"
-echo "   ClickHouse Node 1: https://localhost:9001"
-echo "   ClickHouse Node 2: https://localhost:9011" 
-echo "   ClickHouse Node 3: https://localhost:9021"
+echo "   ClickHouse Node 1: https://localhost:9001 (interserver: 9010)"
+echo "   ClickHouse Node 2: https://localhost:9011 (interserver: 9020)" 
+echo "   ClickHouse Node 3: https://localhost:9021 (interserver: 9030)"
 echo ""
 echo "   Keeper Node 1: localhost:9181"
 echo "   Keeper Node 2: localhost:9182"
@@ -374,5 +411,6 @@ echo "📚 Next Steps:"
 echo "   1. Test connectivity: curl -k https://localhost:9001"
 echo "   2. Connect with client: clickhouse-client --host localhost --port 9002 --secure"
 echo "   3. Run cluster query: SELECT * FROM system.clusters WHERE cluster = 'local_cluster'"
+echo "   4. Test replication: INSERT INTO your_table VALUES (...)"
 echo ""
 echo "🎯 Sequential deployment completed successfully!"

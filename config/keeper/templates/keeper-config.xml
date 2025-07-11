@@ -5,7 +5,8 @@
     <!-- Basic Keeper Settings -->
     <keeper_server>
         <!-- Client port for ClickHouse connections (SSL-enabled) -->
-        <tcp_port>9181</tcp_port>
+        <!-- <tcp_port>9181</tcp_port> -->
+        <tcp_port_secure>9181</tcp_port_secure>
 
         <four_letter_word_white_list>stat,ruok</four_letter_word_white_list>
         <!-- Keeper server ID (unique per node) -->
@@ -49,7 +50,7 @@
         
         <!-- Raft cluster configuration (3-node cluster) -->
         <raft_configuration>
-            <secure>0</secure>
+            <secure>1</secure>
             <!-- keeper-1 service in the "keepers" stack -->
             <server>
                 <id>1</id>
@@ -96,7 +97,7 @@
     <listen_host>0.0.0.0</listen_host>
     
     <!-- SSL Configuration for Keeper -->
-    <!-- <openSSL>
+    <openSSL>
         <server>
             <certificateFile>/etc/ssl/clickhouse/keeper.crt</certificateFile>
             <privateKeyFile>/etc/ssl/clickhouse/keeper.key</privateKeyFile>
@@ -126,7 +127,7 @@
                 <n>AcceptCertificateHandler</n>
             </invalidCertificateHandler>
         </client>
-    </openSSL> -->
+    </openSSL>
     
     <!-- Timezone -->
     <timezone>${TIMEZONE}</timezone>

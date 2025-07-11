@@ -12,17 +12,17 @@
         <node>
             <host>clickhouse-keepers_keeper-1</host>
             <port>9181</port>
-            <!-- <secure>1</secure> -->
+            <secure>1</secure>
         </node>
         <node>
             <host>clickhouse-keepers_keeper-2</host>
             <port>9181</port>
-            <!-- <secure>1</secure> -->
+            <secure>1</secure>
         </node>
         <node>
             <host>clickhouse-keepers_keeper-3</host>
             <port>9181</port>
-            <!-- <secure>1</secure> -->
+            <secure>1</secure>
         </node>
     </zookeeper>
 
