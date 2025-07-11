@@ -4,6 +4,7 @@ services:
   # ClickHouse Server Services
   clickhouse-1:
     image: clickhouse/clickhouse-server:latest
+    hostname: clickhouse-servers_clickhouse-1 
     user: "clickhouse:clickhouse"
     ports:
       - "9001:9001"  # HTTPS port (backward compatible)
@@ -35,6 +36,7 @@ services:
 
   clickhouse-2:
     image: clickhouse/clickhouse-server:latest
+    hostname: clickhouse-servers_clickhouse-2
     user: "clickhouse:clickhouse"
     ports:
       - "9011:9001"  # HTTPS port (different host port)
@@ -66,6 +68,7 @@ services:
 
   clickhouse-3:
     image: clickhouse/clickhouse-server:latest
+    hostname: clickhouse-servers_clickhouse-3
     user: "clickhouse:clickhouse"
     ports:
       - "9021:9001"  # HTTPS port (different host port)

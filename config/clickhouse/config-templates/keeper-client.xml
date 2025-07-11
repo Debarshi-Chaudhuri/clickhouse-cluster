@@ -7,7 +7,6 @@
         <!-- Basic connection settings -->
         <session_timeout_ms>30000</session_timeout_ms>
         <operation_timeout_ms>10000</operation_timeout_ms>
-        <root>/clickhouse</root>
         
         <!-- Keeper server nodes with SSL -->
         <node>
@@ -17,12 +16,12 @@
         </node>
         <node>
             <host>clickhouse-keepers_keeper-2</host>
-            <port>9182</port>
+            <port>9181</port>
             <!-- <secure>1</secure> -->
         </node>
         <node>
             <host>clickhouse-keepers_keeper-3</host>
-            <port>9183</port>
+            <port>9181</port>
             <!-- <secure>1</secure> -->
         </node>
     </zookeeper>
@@ -37,22 +36,23 @@
     <remote_servers>
         <${CLUSTER_NAME}>
             <shard>
+                <internal_replication>true</internal_replication>
                 <replica>
                     <host>clickhouse-servers_clickhouse-1</host>
                     <port>9002</port>
-                    <!-- <user>interserver</user> -->
+                    <user>interserver</user>
                     <secure>1</secure>
                 </replica>
                 <replica>
                     <host>clickhouse-servers_clickhouse-2</host>
                     <port>9002</port>
-                    <!-- <user>interserver</user> -->
+                    <user>interserver</user>
                     <secure>1</secure>
                 </replica>
                 <replica>
                     <host>clickhouse-servers_clickhouse-3</host>
                     <port>9002</port>
-                    <!-- <user>interserver</user> -->
+                    <user>interserver</user>
                     <secure>1</secure>
                 </replica>
             </shard>

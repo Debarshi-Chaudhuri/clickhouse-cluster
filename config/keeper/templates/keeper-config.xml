@@ -7,6 +7,7 @@
         <!-- Client port for ClickHouse connections (SSL-enabled) -->
         <tcp_port>9181</tcp_port>
 
+        <four_letter_word_white_list>stat,ruok</four_letter_word_white_list>
         <!-- Keeper server ID (unique per node) -->
         <server_id>${KEEPER_SERVER_ID}</server_id>
         
