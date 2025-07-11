@@ -20,7 +20,6 @@
             </invalidCertificateHandler>
             <preferServerCiphers>true</preferServerCiphers>
             <disableProtocols>sslv2,sslv3</disableProtocols>
-            <extendedVerification>true</extendedVerification>
             <verificationMode>relaxed</verificationMode>
         </client>
     </openSSL>

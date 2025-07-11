@@ -35,9 +35,6 @@
             
             <!-- Disable insecure SSL/TLS protocols -->
             <disableProtocols>sslv2,sslv3</disableProtocols>
-            
-            <!-- Enable extended certificate verification -->
-            <extendedVerification>true</extendedVerification>
         </server>
 
         <!-- Client SSL Configuration (for outgoing connections to Keeper and other nodes) -->
@@ -73,9 +70,6 @@
             
             <!-- Disable insecure SSL/TLS protocols -->
             <disableProtocols>sslv2,sslv3</disableProtocols>
-            
-            <!-- Enable extended certificate verification -->
-            <extendedVerification>true</extendedVerification>
         </client>
     </openSSL>
 

@@ -10,6 +10,7 @@ services:
       - "9001:9001"  # HTTPS port (backward compatible)
       - "9002:9002"  # TCP Secure port
       - "9440:9440"  # TCP Secure alternative
+      - "9010:9010"  # Interserver port
     volumes:
       - ../config/clickhouse/entrypoint.sh:/entrypoint.sh:ro
       - ../config/clickhouse/config-templates:/etc/clickhouse-server/config-templates:ro
@@ -42,6 +43,7 @@ services:
       - "9011:9001"  # HTTPS port (different host port)
       - "9012:9002"  # TCP Secure port  
       - "9441:9440"  # TCP Secure alternative
+      - "9020:9010"  # Interserver port
     volumes:
       - ../config/clickhouse/entrypoint.sh:/entrypoint.sh:ro
       - ../config/clickhouse/config-templates:/etc/clickhouse-server/config-templates:ro
@@ -74,6 +76,7 @@ services:
       - "9021:9001"  # HTTPS port (different host port)
       - "9022:9002"  # TCP Secure port
       - "9442:9440"  # TCP Secure alternative
+      - "9030:9010"  # Interserver port
     volumes:
       - ../config/clickhouse/entrypoint.sh:/entrypoint.sh:ro
       - ../config/clickhouse/config-templates:/etc/clickhouse-server/config-templates:ro
